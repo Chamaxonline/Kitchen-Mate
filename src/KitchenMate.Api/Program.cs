@@ -3,7 +3,9 @@ using KitchenMate.Api.Middleware;
 using KitchenMate.Application;
 using KitchenMate.Domain.Constants;
 using KitchenMate.Infrastructure;
+using KitchenMate.Infrastructure.Identity;
 using KitchenMate.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -75,6 +77,10 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await SeedData.InitializeAsync(db);
     await IdentitySeedData.InitializeAsync(scope.ServiceProvider);
+
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var waiter = await userManager.FindByEmailAsync("waiter@kitchen.local");
+    await SeedData.SeedSampleOrdersAsync(db, waiter?.Id);
 }
 
 if (app.Environment.IsDevelopment())

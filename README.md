@@ -46,7 +46,18 @@ Restaurant management system for order entry, kitchen workflow, and table manage
 
 4. Open Swagger: `https://localhost:7xxx/swagger` (see `launchSettings.json` for the port).
 
-On first run, seed data loads sample menu items, 10 tables, and demo users.
+On first run, seed data loads:
+
+- **14 menu items** across 4 categories (appetizers, mains, desserts, drinks)
+- **10 tables**
+- **4 demo users** (waiter, kitchen, manager, admin)
+- **6 sample orders** covering the full workflow:
+  - 2 in kitchen queue (new + in progress)
+  - 1 ready for pickup (takeaway)
+  - 2 completed (history)
+  - 1 cancelled (history)
+
+If your database already has menu data but no orders, sample orders are added automatically on the next API startup.
 
 ### Demo login accounts
 
