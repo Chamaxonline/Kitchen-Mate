@@ -1,6 +1,6 @@
 import { getToken } from "./auth";
 import type { AuthUser } from "./auth";
-import type { MenuCategory, MenuItem, Order, OrderStatus, OrderType, Table } from "./types";
+import type { MenuCategory, MenuItem, Order, OrderStatus, OrderType, Table, TeamUser, UserRole } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7067";
 
@@ -144,6 +144,22 @@ export function createMenuItem(body: {
   price: number;
 }) {
   return request<MenuItem>("/api/menu/items", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function getTeamUsers() {
+  return request<TeamUser[]>("/api/users");
+}
+
+export function createTeamUser(body: {
+  email: string;
+  password: string;
+  fullName: string;
+  role: UserRole;
+}) {
+  return request<TeamUser>("/api/users", {
     method: "POST",
     body: JSON.stringify(body),
   });

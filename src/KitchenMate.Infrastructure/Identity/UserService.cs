@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using KitchenMate.Application.DTOs;
 using KitchenMate.Application.Exceptions;
 using KitchenMate.Application.Interfaces;
 using KitchenMate.Domain.Constants;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,7 +11,8 @@ namespace KitchenMate.Infrastructure.Identity;
 
 public class UserService(
     UserManager<ApplicationUser> userManager,
-    ITenantContext tenantContext) : IUserService
+    ITenantContext tenantContext,
+    IHttpContextAccessor httpContextAccessor) : IUserService
 {
     public async Task<IReadOnlyList<UserDto>> GetAllAsync(CancellationToken ct = default)
     {
@@ -42,13 +45,16 @@ public class UserService(
         if (!Roles.All.Contains(request.Role))
             throw new BusinessRuleException($"Invalid role. Allowed: {string.Join(", ", Roles.All)}");
 
+        var currentRole = httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Role);
+        ValidateRoleAssignment(currentRole, request.Role);
+
         var tenantId = RequireTenantId();
 
         var user = new ApplicationUser
         {
-            UserName = request.Email,
-            Email = request.Email,
-            FullName = request.FullName,
+            UserName = request.Email.Trim().ToLowerInvariant(),
+            Email = request.Email.Trim().ToLowerInvariant(),
+            FullName = request.FullName.Trim(),
             EmailConfirmed = true,
             TenantId = tenantId
         };
@@ -73,6 +79,20 @@ public class UserService(
             tenant.Id,
             tenant.Name,
             tenant.Slug);
+    }
+
+    private static void ValidateRoleAssignment(string? currentRole, string newRole)
+    {
+        if (currentRole == Roles.Admin)
+            return;
+
+        if (currentRole == Roles.Manager && newRole is Roles.Waiter or Roles.Kitchen)
+            return;
+
+        if (currentRole == Roles.Manager)
+            throw new BusinessRuleException("Managers can only invite Waiter and Kitchen staff.");
+
+        throw new BusinessRuleException("You do not have permission to invite users.");
     }
 
     private Guid RequireTenantId() =>

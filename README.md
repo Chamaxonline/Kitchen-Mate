@@ -88,6 +88,15 @@ Or use the demo tenant (`demo`) with the accounts below.
 
 **API:** `POST /api/tenants/register` — creates tenant, admin user, and default menu/tables.
 
+### Invite staff (waiter, kitchen, manager)
+
+1. Sign in as **Admin** (or **Manager** for waiter/kitchen only)
+2. Open **Team** in the sidebar → `/team`
+3. Enter name, email, temporary password, and role
+4. Share login details — staff sign in at `/login` with their email
+
+**API:** `GET /api/users`, `POST /api/users` (Manager or Admin; managers can only create Waiter/Kitchen).
+
 ## API overview
 
 | Endpoint | Description |

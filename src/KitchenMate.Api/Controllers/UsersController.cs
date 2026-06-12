@@ -8,7 +8,7 @@ namespace KitchenMate.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Policy = "AdminOnly")]
+[Authorize(Policy = "ManagerOrAdmin")]
 public class UsersController(IUserService userService) : ControllerBase
 {
     [HttpGet]

@@ -69,6 +69,18 @@ export interface Order {
   items: OrderItem[];
 }
 
+export type UserRole = "Waiter" | "Kitchen" | "Manager" | "Admin";
+
+export interface TeamUser {
+  id: string;
+  email: string;
+  fullName: string;
+  role: UserRole;
+  tenantId: string;
+  tenantName: string;
+  tenantSlug: string;
+}
+
 export interface CartLine {
   menuItemId: string;
   name: string;

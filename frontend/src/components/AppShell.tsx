@@ -10,6 +10,7 @@ import {
   LogOut,
   PlusCircle,
   Settings2,
+  Users,
   UtensilsCrossed,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -29,7 +30,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   if (!user) return <>{children}</>;
 
-  const links = isManager ? [...navItems, { href: "/menu", label: "Menu Admin", icon: Settings2 }] : navItems;
+  const adminLinks = isManager
+    ? [
+        { href: "/menu", label: "Menu Admin", icon: Settings2 },
+        { href: "/team", label: "Team", icon: Users },
+      ]
+    : [];
+  const links = [...navItems, ...adminLinks];
 
   return (
     <div className="min-h-screen lg:flex">
