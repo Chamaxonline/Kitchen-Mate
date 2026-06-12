@@ -2,8 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Plus, Settings2 } from "lucide-react";
 import { createCategory, createMenuItem, getMenu, updateMenuItem } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
 import type { MenuCategory } from "@/lib/types";
 
 export default function MenuAdminPage() {
@@ -74,80 +78,98 @@ export default function MenuAdminPage() {
   if (!isManager) return null;
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Menu Admin</h1>
+    <div>
+      <PageHeader title="Menu Admin" description="Manage categories, items, and availability for managers." />
 
-      <section className="grid gap-4 rounded-2xl border bg-white p-6 md:grid-cols-2 dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="space-y-2">
-          <h2 className="font-semibold">New category</h2>
-          <input
-            value={categoryName}
-            onChange={(e) => setCategoryName(e.target.value)}
-            placeholder="Category name"
-            className="w-full rounded-lg border px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-          />
-          <button type="button" onClick={addCategory} className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white">
-            Add Category
-          </button>
+      <Card className="mb-6">
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="space-y-3">
+            <h2 className="flex items-center gap-2 font-bold text-stone-900">
+              <Plus className="h-4 w-4 text-brand" />
+              New category
+            </h2>
+            <input
+              value={categoryName}
+              onChange={(e) => setCategoryName(e.target.value)}
+              placeholder="e.g. Desserts"
+              className="w-full rounded-xl border border-border bg-stone-50 px-4 py-3 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+            />
+            <Button onClick={addCategory}>Add category</Button>
+          </div>
+
+          <div className="space-y-3">
+            <h2 className="flex items-center gap-2 font-bold text-stone-900">
+              <Settings2 className="h-4 w-4 text-brand" />
+              New item
+            </h2>
+            <select
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              className="w-full rounded-xl border border-border bg-stone-50 px-4 py-3 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+            >
+              <option value="">Select category</option>
+              {menu.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <input
+              value={itemName}
+              onChange={(e) => setItemName(e.target.value)}
+              placeholder="Item name"
+              className="w-full rounded-xl border border-border bg-stone-50 px-4 py-3 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+            />
+            <input
+              value={itemPrice}
+              onChange={(e) => setItemPrice(e.target.value)}
+              placeholder="Price"
+              type="number"
+              step="0.01"
+              className="w-full rounded-xl border border-border bg-stone-50 px-4 py-3 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+            />
+            <Button onClick={addItem}>Add item</Button>
+          </div>
         </div>
+      </Card>
 
-        <div className="space-y-2">
-          <h2 className="font-semibold">New item</h2>
-          <select
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className="w-full rounded-lg border px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-          >
-            <option value="">Select category</option>
-            {menu.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-          <input
-            value={itemName}
-            onChange={(e) => setItemName(e.target.value)}
-            placeholder="Item name"
-            className="w-full rounded-lg border px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-          />
-          <input
-            value={itemPrice}
-            onChange={(e) => setItemPrice(e.target.value)}
-            placeholder="Price"
-            type="number"
-            step="0.01"
-            className="w-full rounded-lg border px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-          />
-          <button type="button" onClick={addItem} className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white">
-            Add Item
-          </button>
-        </div>
-      </section>
+      {message && (
+        <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{message}</div>
+      )}
+      {error && (
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+      )}
 
-      {message && <p className="text-sm text-green-600">{message}</p>}
-      {error && <p className="text-sm text-red-600">{error}</p>}
-
-      {menu.map((category) => (
-        <section key={category.id} className="rounded-2xl border bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-          <h2 className="mb-3 text-lg font-semibold">{category.name}</h2>
-          <ul className="space-y-2">
-            {category.items.map((item, index) => (
-              <li key={item.id} className="flex items-center justify-between rounded-lg border px-4 py-3 dark:border-zinc-700">
-                <span>
-                  {item.name} — ${item.price.toFixed(2)}
-                  {!item.isAvailable && <span className="ml-2 text-xs text-red-500">Unavailable</span>}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => toggleAvailability(item.id, category, index)}
-                  className="text-sm text-orange-600 hover:underline"
+      <div className="space-y-4">
+        {menu.map((category) => (
+          <Card key={category.id}>
+            <h2 className="mb-4 text-lg font-bold text-stone-900">{category.name}</h2>
+            <ul className="space-y-2">
+              {category.items.map((item, index) => (
+                <li
+                  key={item.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-stone-50 px-4 py-3"
                 >
-                  {item.isAvailable ? "Mark unavailable" : "Mark available"}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+                  <span className="font-medium text-stone-900">
+                    {item.name}
+                    <span className="ml-2 font-bold text-brand">${item.price.toFixed(2)}</span>
+                    {!item.isAvailable && (
+                      <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">
+                        Unavailable
+                      </span>
+                    )}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleAvailability(item.id, category, index)}
+                  >
+                    {item.isAvailable ? "Mark unavailable" : "Mark available"}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

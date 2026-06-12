@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AppShell } from "@/components/AppShell";
 import { AuthGuard } from "@/components/AuthGuard";
-import { Nav } from "@/components/Nav";
 import { AuthProvider } from "@/context/AuthContext";
 import "./globals.css";
 
@@ -27,11 +27,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-zinc-50 antialiased dark:bg-zinc-950`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} min-h-screen antialiased`}>
         <AuthProvider>
           <AuthGuard>
-            <Nav />
-            <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+            <AppShell>{children}</AppShell>
           </AuthGuard>
         </AuthProvider>
       </body>

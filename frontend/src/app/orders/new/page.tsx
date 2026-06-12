@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Minus, Plus, ShoppingBag, Utensils } from "lucide-react";
 import { createOrder, getMenu, getTables } from "@/lib/api";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { LoadingState } from "@/components/ui/LoadingState";
+import { PageHeader } from "@/components/ui/PageHeader";
 import type { CartLine, MenuCategory, OrderType, Table } from "@/lib/types";
 
 export default function NewOrderPage() {
@@ -38,12 +43,14 @@ export default function NewOrderPage() {
     });
   }
 
-  function updateQty(menuItemId: string, quantity: number) {
-    if (quantity < 1) {
-      setCart((prev) => prev.filter((line) => line.menuItemId !== menuItemId));
-      return;
-    }
-    setCart((prev) => prev.map((line) => (line.menuItemId === menuItemId ? { ...line, quantity } : line)));
+  function updateQty(menuItemId: string, delta: number) {
+    setCart((prev) =>
+      prev
+        .map((line) =>
+          line.menuItemId === menuItemId ? { ...line, quantity: line.quantity + delta } : line,
+        )
+        .filter((line) => line.quantity > 0),
+    );
   }
 
   const total = cart.reduce((sum, line) => sum + line.price * line.quantity, 0);
@@ -53,7 +60,7 @@ export default function NewOrderPage() {
     setMessage(null);
 
     if (cart.length === 0) {
-      setError("Add at least one item.");
+      setError("Add at least one item to the order.");
       return;
     }
     if (orderType === 0 && !tableId) {
@@ -80,56 +87,56 @@ export default function NewOrderPage() {
     }
   }
 
-  if (loading) return <p className="text-zinc-500">Loading menu...</p>;
+  if (loading) return <LoadingState label="Loading menu..." />;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">New Order</h1>
-        <p className="text-zinc-600">Pick order type, table (if dine-in), and menu items.</p>
-      </div>
+    <div>
+      <PageHeader title="New Order" description="Tap items to add them. Review the cart, then send to kitchen." />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <section className="space-y-4 rounded-2xl border bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex gap-2">
-            {(["Dine-In", "Takeaway"] as const).map((label, index) => (
-              <button
-                key={label}
-                type="button"
-                onClick={() => setOrderType(index as OrderType)}
-                className={`rounded-lg px-4 py-2 text-sm font-medium ${
-                  orderType === index
-                    ? "bg-orange-600 text-white"
-                    : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+      <div className="grid gap-6 xl:grid-cols-5">
+        <div className="space-y-4 xl:col-span-3">
+          <Card>
+            <div className="grid grid-cols-2 gap-3">
+              {(["Dine-In", "Takeaway"] as const).map((label, index) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => setOrderType(index as OrderType)}
+                  className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-4 text-sm font-bold transition ${
+                    orderType === index
+                      ? "border-brand bg-brand-light text-brand"
+                      : "border-border bg-stone-50 text-stone-600 hover:border-stone-300"
+                  }`}
+                >
+                  {index === 0 ? <Utensils className="h-4 w-4" /> : <ShoppingBag className="h-4 w-4" />}
+                  {label}
+                </button>
+              ))}
+            </div>
 
-          {orderType === 0 && (
-            <label className="block space-y-2">
-              <span className="text-sm font-medium">Table</span>
-              <select
-                value={tableId}
-                onChange={(e) => setTableId(e.target.value)}
-                className="w-full rounded-lg border px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-              >
-                <option value="">Select table</option>
-                {tables.map((table) => (
-                  <option key={table.id} value={table.id}>
-                    Table {table.number} ({table.capacity} seats)
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+            {orderType === 0 && (
+              <label className="mt-4 block space-y-2">
+                <span className="text-sm font-semibold text-stone-700">Table</span>
+                <select
+                  value={tableId}
+                  onChange={(e) => setTableId(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-stone-50 px-4 py-3 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                >
+                  <option value="">Select an available table</option>
+                  {tables.map((table) => (
+                    <option key={table.id} value={table.id}>
+                      Table {table.number} · {table.capacity} seats
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </Card>
 
           {menu.map((category) => (
-            <div key={category.id}>
-              <h2 className="mb-2 font-semibold">{category.name}</h2>
-              <div className="space-y-2">
+            <Card key={category.id}>
+              <h2 className="mb-4 text-lg font-bold text-stone-900">{category.name}</h2>
+              <div className="grid gap-3 sm:grid-cols-2">
                 {category.items
                   .filter((item) => item.isAvailable)
                   .map((item) => (
@@ -137,73 +144,86 @@ export default function NewOrderPage() {
                       key={item.id}
                       type="button"
                       onClick={() => addItem(item)}
-                      className="flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left hover:border-orange-300 hover:bg-orange-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                      className="rounded-xl border border-border bg-stone-50 p-4 text-left transition hover:border-brand hover:bg-brand-light"
                     >
-                      <span>
-                        <span className="font-medium">{item.name}</span>
-                        {item.description && (
-                          <span className="mt-1 block text-sm text-zinc-500">{item.description}</span>
-                        )}
-                      </span>
-                      <span className="font-semibold">${item.price.toFixed(2)}</span>
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-semibold text-stone-900">{item.name}</span>
+                        <span className="shrink-0 rounded-lg bg-white px-2 py-1 text-sm font-bold text-brand">
+                          ${item.price.toFixed(2)}
+                        </span>
+                      </div>
+                      {item.description && <p className="mt-1 text-xs text-muted">{item.description}</p>}
                     </button>
                   ))}
               </div>
-            </div>
+            </Card>
           ))}
-        </section>
+        </div>
 
-        <section className="space-y-4 rounded-2xl border bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-          <h2 className="text-xl font-semibold">Cart</h2>
+        <Card className="sticky top-6 h-fit xl:col-span-2">
+          <h2 className="mb-4 text-xl font-bold text-stone-900">Order summary</h2>
+
           {cart.length === 0 ? (
-            <p className="text-sm text-zinc-500">No items yet.</p>
+            <p className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted">
+              Tap menu items to build the order
+            </p>
           ) : (
             <ul className="space-y-3">
               {cart.map((line) => (
-                <li key={line.menuItemId} className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="font-medium">{line.name}</p>
-                    <p className="text-sm text-zinc-500">${line.price.toFixed(2)} each</p>
+                <li key={line.menuItemId} className="flex items-center justify-between gap-3 rounded-xl bg-stone-50 p-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-stone-900">{line.name}</p>
+                    <p className="text-xs text-muted">${line.price.toFixed(2)} each</p>
                   </div>
-                  <input
-                    type="number"
-                    min={1}
-                    value={line.quantity}
-                    onChange={(e) => updateQty(line.menuItemId, Number(e.target.value))}
-                    className="w-16 rounded border px-2 py-1 text-center dark:border-zinc-700 dark:bg-zinc-950"
-                  />
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateQty(line.menuItemId, -1)}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-stone-700 shadow-sm"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <span className="w-6 text-center font-bold">{line.quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => updateQty(line.menuItemId, 1)}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-white shadow-sm"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
           )}
 
-          <label className="block space-y-2">
-            <span className="text-sm font-medium">Notes</span>
+          <label className="mt-4 block space-y-2">
+            <span className="text-sm font-semibold text-stone-700">Special notes</span>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full rounded-lg border px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+              className="w-full rounded-xl border border-border bg-stone-50 px-4 py-3 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
               rows={3}
+              placeholder="Allergies, spice level, etc."
             />
           </label>
 
-          <div className="flex items-center justify-between border-t pt-4 text-lg font-semibold">
-            <span>Total</span>
-            <span>${total.toFixed(2)}</span>
+          <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+            <span className="text-muted">Total</span>
+            <span className="text-2xl font-bold text-stone-900">${total.toFixed(2)}</span>
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          {message && <p className="text-sm text-green-600">{message}</p>}
+          {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+          {message && (
+            <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+              {message}
+            </div>
+          )}
 
-          <button
-            type="button"
-            onClick={placeOrder}
-            disabled={submitting}
-            className="w-full rounded-lg bg-orange-600 px-4 py-3 font-semibold text-white hover:bg-orange-700 disabled:opacity-50"
-          >
-            {submitting ? "Placing..." : "Place Order → Kitchen"}
-          </button>
-        </section>
+          <Button className="mt-4" onClick={placeOrder} disabled={submitting} fullWidth size="lg">
+            {submitting ? "Sending..." : "Send to kitchen"}
+          </Button>
+        </Card>
       </div>
     </div>
   );

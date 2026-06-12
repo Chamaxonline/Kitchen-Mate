@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { LoadingState } from "@/components/ui/LoadingState";
 
 const publicPaths = ["/login"];
 
@@ -22,7 +23,11 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }, [user, loading, pathname, router]);
 
   if (loading) {
-    return <p className="px-4 py-8 text-zinc-500">Loading...</p>;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <LoadingState label="Starting Kitchen Mate..." />
+      </div>
+    );
   }
 
   if (!user && !publicPaths.includes(pathname)) {
