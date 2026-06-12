@@ -21,6 +21,7 @@ public record OrderDto(
     string? Notes,
     decimal Total,
     DateTime CreatedAt,
+    DateTime? UpdatedAt,
     IReadOnlyList<OrderItemDto> Items);
 
 public record CreateOrderItemRequest(Guid MenuItemId, int Quantity, string? Notes);

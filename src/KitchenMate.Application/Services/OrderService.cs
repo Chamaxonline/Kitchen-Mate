@@ -182,6 +182,7 @@ public class OrderService(IAppDbContext db)
             o.Notes,
             o.Total,
             o.CreatedAt,
+            o.UpdatedAt,
             o.Items.Select(i => new OrderItemDto(
                 i.Id, i.MenuItemId, i.MenuItemName, i.Quantity, i.UnitPrice, i.Notes, i.LineTotal)).ToList());
 }

@@ -65,6 +65,7 @@ export interface Order {
   notes: string | null;
   total: number;
   createdAt: string;
+  updatedAt: string | null;
   items: OrderItem[];
 }
 

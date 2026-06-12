@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import {
   ArrowRight,
@@ -134,23 +135,46 @@ function PipelineBar({ stats }: { stats: DashboardStats }) {
 }
 
 export default function HomePage() {
+  const pathname = usePathname();
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const load = useCallback(() => {
-    Promise.all([getOrders(), getTables()])
-      .then(([orders, tables]) => setStats(buildDashboardStats(orders, tables)))
+    Promise.all([
+      getOrders(),
+      getTables(),
+    ])
+      .then(([orders, tables]) => {
+        setStats(buildDashboardStats(orders, tables));
+        setLastUpdated(new Date());
+        setError(null);
+      })
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
+    if (pathname !== "/") return;
+
     load();
-    const timer = setInterval(load, 15000);
-    return () => clearInterval(timer);
-  }, [load]);
+    const timer = setInterval(load, 10000);
+
+    function onVisible() {
+      if (document.visibilityState === "visible") load();
+    }
+
+    window.addEventListener("focus", load);
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", load);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [pathname, load]);
 
   if (loading) return <LoadingState label="Loading today's overview..." />;
 
@@ -160,7 +184,11 @@ export default function HomePage() {
     <div>
       <PageHeader
         title={`Good day, ${firstName}`}
-        description={todayLabel()}
+        description={
+          lastUpdated
+            ? `${todayLabel()} · Updated ${formatTime(lastUpdated.toISOString())}`
+            : todayLabel()
+        }
         action={
           stats && stats.readyToServe > 0 ? (
             <Link
@@ -192,8 +220,10 @@ export default function HomePage() {
               value={formatCurrency(stats.todayRevenue)}
               hint={
                 stats.todayCompleted > 0
-                  ? `Avg ${formatCurrency(stats.avgOrderValue)} per order`
-                  : "No completed sales yet today"
+                  ? `${stats.todayCompleted} completed · avg ${formatCurrency(stats.avgOrderValue)}`
+                  : stats.todayOpenValue > 0
+                    ? `${formatCurrency(stats.todayOpenValue)} in open orders`
+                    : "Completes when orders are marked done"
               }
               icon={DollarSign}
               accent="from-emerald-500 to-teal-500"

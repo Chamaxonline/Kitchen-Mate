@@ -4,6 +4,7 @@ export interface DashboardStats {
   todayOrders: number;
   todayCompleted: number;
   todayRevenue: number;
+  todayOpenValue: number;
   todayDineIn: number;
   todayTakeaway: number;
   todayCancelled: number;
@@ -19,20 +20,28 @@ export interface DashboardStats {
   recentToday: Order[];
 }
 
+function localDateKey(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return d.toLocaleDateString("en-CA");
+}
+
 function isToday(iso: string): boolean {
-  const d = new Date(iso);
-  const now = new Date();
-  return (
-    d.getFullYear() === now.getFullYear() &&
-    d.getMonth() === now.getMonth() &&
-    d.getDate() === now.getDate()
-  );
+  return localDateKey(iso) === localDateKey(new Date());
+}
+
+function completedToday(order: Order): boolean {
+  if (order.status !== 4) return false;
+  const completedAt = order.updatedAt ?? order.createdAt;
+  return isToday(completedAt);
 }
 
 export function buildDashboardStats(orders: Order[], tables: Table[]): DashboardStats {
   const today = orders.filter((o) => isToday(o.createdAt));
-  const completedToday = today.filter((o) => o.status === 4);
-  const todayRevenue = completedToday.reduce((sum, o) => sum + o.total, 0);
+  const completedTodayOrders = orders.filter(completedToday);
+  const todayRevenue = completedTodayOrders.reduce((sum, o) => sum + o.total, 0);
+  const todayOpenValue = today
+    .filter((o) => o.status >= 1 && o.status <= 3)
+    .reduce((sum, o) => sum + o.total, 0);
 
   const kitchenQueue = orders.filter((o) => o.status === 1).length;
   const inKitchen = orders.filter((o) => o.status === 2).length;
@@ -45,12 +54,13 @@ export function buildDashboardStats(orders: Order[], tables: Table[]): Dashboard
 
   return {
     todayOrders: today.length,
-    todayCompleted: completedToday.length,
+    todayCompleted: completedTodayOrders.length,
     todayRevenue,
+    todayOpenValue,
     todayDineIn: today.filter((o) => o.type === 0).length,
     todayTakeaway: today.filter((o) => o.type === 1).length,
-    todayCancelled: today.filter((o) => o.status === 5).length,
-    avgOrderValue: completedToday.length ? todayRevenue / completedToday.length : 0,
+    todayCancelled: today.filter((o) => o.status === 5 && isToday(o.updatedAt ?? o.createdAt)).length,
+    avgOrderValue: completedTodayOrders.length ? todayRevenue / completedTodayOrders.length : 0,
     kitchenQueue,
     inKitchen,
     readyToServe,
