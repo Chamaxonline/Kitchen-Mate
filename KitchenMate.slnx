@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/KitchenMate.Api/KitchenMate.Api.csproj" />
+    <Project Path="src/KitchenMate.Application/KitchenMate.Application.csproj" />
+    <Project Path="src/KitchenMate.Domain/KitchenMate.Domain.csproj" />
+    <Project Path="src/KitchenMate.Infrastructure/KitchenMate.Infrastructure.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,36 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+[Dd]ebug/
+[Rr]elease/
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## Visual Studio
+.vs/
+*.rsuser
+
+## Rider
+.idea/
+
+## User secrets & local config (do not commit passwords)
+appsettings.Development.json
+appsettings.*.local.json
+secrets.json
+
+## Node / Next.js (future frontend)
+node_modules/
+.next/
+out/
+.env
+.env*.local
+
+## OS
+Thumbs.db
+.DS_Store
