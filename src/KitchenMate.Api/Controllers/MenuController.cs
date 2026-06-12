@@ -13,6 +13,47 @@ public class MenuController(MenuService menuService) : ControllerBase
     public async Task<ActionResult<IReadOnlyList<MenuCategoryDto>>> GetMenu(CancellationToken ct)
         => Ok(await menuService.GetMenuAsync(ct));
 
+    [HttpPost("categories")]
+    public async Task<ActionResult<MenuCategorySummaryDto>> CreateCategory([FromBody] CreateMenuCategoryRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var category = await menuService.CreateCategoryAsync(request, ct);
+            return CreatedAtAction(nameof(GetMenu), new { }, category);
+        }
+        catch (BusinessRuleException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("categories/{id:guid}")]
+    public async Task<ActionResult<MenuCategorySummaryDto>> UpdateCategory(Guid id, [FromBody] UpdateMenuCategoryRequest request, CancellationToken ct)
+    {
+        try
+        {
+            return Ok(await menuService.UpdateCategoryAsync(id, request, ct));
+        }
+        catch (BusinessRuleException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("categories/{id:guid}")]
+    public async Task<IActionResult> DeleteCategory(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            await menuService.DeleteCategoryAsync(id, ct);
+            return NoContent();
+        }
+        catch (BusinessRuleException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpPost("items")]
     public async Task<ActionResult<MenuItemDto>> CreateItem([FromBody] CreateMenuItemRequest request, CancellationToken ct)
     {
