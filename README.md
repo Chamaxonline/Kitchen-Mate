@@ -46,7 +46,16 @@ Restaurant management system for order entry, kitchen workflow, and table manage
 
 4. Open Swagger: `https://localhost:7xxx/swagger` (see `launchSettings.json` for the port).
 
-On first run, seed data loads sample menu items and 10 tables.
+On first run, seed data loads sample menu items, 10 tables, and demo users.
+
+### Demo login accounts
+
+| Email | Password | Role |
+|-------|----------|------|
+| waiter@kitchen.local | Password123! | Waiter |
+| kitchen@kitchen.local | Password123! | Kitchen |
+| manager@kitchen.local | Password123! | Manager |
+| admin@kitchen.local | Password123! | Admin |
 
 ## Frontend setup
 
@@ -62,6 +71,8 @@ Open [http://localhost:3000](http://localhost:3000). Copy `frontend/.env.local.e
 
 | Endpoint | Description |
 |----------|-------------|
+| `POST /api/auth/login` | Sign in (returns JWT) |
+| `GET /api/auth/me` | Current user |
 | `GET /api/menu` | Full menu with categories and items |
 | `POST /api/menu/categories` | Create category |
 | `PUT /api/menu/categories/{id}` | Update category |
@@ -78,6 +89,14 @@ Placed → SentToKitchen → InKitchen → Ready → Completed
 ```
 
 New orders are auto-sent to the kitchen on placement.
+
+## CI / Deploy
+
+- **CI:** GitHub Actions builds backend and frontend on every push to `main`.
+- **Azure deploy:** Run the `Deploy API to Azure` workflow manually after adding these GitHub secrets:
+  - `AZURE_WEBAPP_NAME`
+  - `AZURE_WEBAPP_PUBLISH_PROFILE`
+  - Set `ConnectionStrings__DefaultConnection` and `Jwt__Key` in Azure App Service configuration.
 
 ## Repository
 

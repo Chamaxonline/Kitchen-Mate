@@ -1,12 +1,14 @@
 using KitchenMate.Application.DTOs;
 using KitchenMate.Application.Exceptions;
 using KitchenMate.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KitchenMate.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class MenuController(MenuService menuService) : ControllerBase
 {
     [HttpGet]
@@ -14,6 +16,7 @@ public class MenuController(MenuService menuService) : ControllerBase
         => Ok(await menuService.GetMenuAsync(ct));
 
     [HttpPost("categories")]
+    [Authorize(Policy = "ManagerOrAdmin")]
     public async Task<ActionResult<MenuCategorySummaryDto>> CreateCategory([FromBody] CreateMenuCategoryRequest request, CancellationToken ct)
     {
         try
@@ -28,6 +31,7 @@ public class MenuController(MenuService menuService) : ControllerBase
     }
 
     [HttpPut("categories/{id:guid}")]
+    [Authorize(Policy = "ManagerOrAdmin")]
     public async Task<ActionResult<MenuCategorySummaryDto>> UpdateCategory(Guid id, [FromBody] UpdateMenuCategoryRequest request, CancellationToken ct)
     {
         try
@@ -41,6 +45,7 @@ public class MenuController(MenuService menuService) : ControllerBase
     }
 
     [HttpDelete("categories/{id:guid}")]
+    [Authorize(Policy = "ManagerOrAdmin")]
     public async Task<IActionResult> DeleteCategory(Guid id, CancellationToken ct)
     {
         try
@@ -55,6 +60,7 @@ public class MenuController(MenuService menuService) : ControllerBase
     }
 
     [HttpPost("items")]
+    [Authorize(Policy = "ManagerOrAdmin")]
     public async Task<ActionResult<MenuItemDto>> CreateItem([FromBody] CreateMenuItemRequest request, CancellationToken ct)
     {
         try
@@ -69,6 +75,7 @@ public class MenuController(MenuService menuService) : ControllerBase
     }
 
     [HttpPut("items/{id:guid}")]
+    [Authorize(Policy = "ManagerOrAdmin")]
     public async Task<ActionResult<MenuItemDto>> UpdateItem(Guid id, [FromBody] UpdateMenuItemRequest request, CancellationToken ct)
     {
         try

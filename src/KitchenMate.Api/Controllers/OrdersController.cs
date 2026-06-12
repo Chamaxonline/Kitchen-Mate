@@ -1,22 +1,26 @@
+using System.Security.Claims;
 using KitchenMate.Application.DTOs;
 using KitchenMate.Application.Exceptions;
 using KitchenMate.Application.Services;
 using KitchenMate.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KitchenMate.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class OrdersController(OrderService orderService) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<OrderDto>>> GetOrders(
         [FromQuery] OrderStatus? status,
         [FromQuery] OrderType? type,
+        [FromQuery] Guid? tableId,
         [FromQuery] bool kitchenQueue = false,
         CancellationToken ct = default)
-        => Ok(await orderService.GetOrdersAsync(status, type, kitchenQueue, ct));
+        => Ok(await orderService.GetOrdersAsync(status, type, tableId, kitchenQueue, ct));
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<OrderDto>> GetById(Guid id, CancellationToken ct)
@@ -30,7 +34,8 @@ public class OrdersController(OrderService orderService) : ControllerBase
     {
         try
         {
-            var order = await orderService.CreateAsync(request, userId: null, ct);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var order = await orderService.CreateAsync(request, userId, ct);
             return CreatedAtAction(nameof(GetById), new { id = order.Id }, order);
         }
         catch (BusinessRuleException ex)

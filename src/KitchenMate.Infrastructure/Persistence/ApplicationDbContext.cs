@@ -1,10 +1,13 @@
 using KitchenMate.Application.Interfaces;
 using KitchenMate.Domain.Entities;
+using KitchenMate.Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace KitchenMate.Infrastructure.Persistence;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options), IAppDbContext
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    : IdentityDbContext<ApplicationUser>(options), IAppDbContext
 {
     public DbSet<DiningTable> Tables => Set<DiningTable>();
     public DbSet<MenuCategory> MenuCategories => Set<MenuCategory>();
@@ -14,6 +17,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<DiningTable>(e =>
         {
             e.HasIndex(t => t.Number).IsUnique();

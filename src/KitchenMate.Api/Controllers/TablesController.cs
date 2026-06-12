@@ -1,12 +1,14 @@
 using KitchenMate.Application.DTOs;
 using KitchenMate.Application.Exceptions;
 using KitchenMate.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KitchenMate.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class TablesController(TableService tableService) : ControllerBase
 {
     [HttpGet]
@@ -14,6 +16,7 @@ public class TablesController(TableService tableService) : ControllerBase
         => Ok(await tableService.GetAllAsync(ct));
 
     [HttpPost]
+    [Authorize(Policy = "ManagerOrAdmin")]
     public async Task<ActionResult<TableDto>> Create([FromBody] CreateTableRequest request, CancellationToken ct)
     {
         try
@@ -28,6 +31,7 @@ public class TablesController(TableService tableService) : ControllerBase
     }
 
     [HttpPatch("{id:guid}/status")]
+    [Authorize(Policy = "ManagerOrAdmin")]
     public async Task<ActionResult<TableDto>> UpdateStatus(Guid id, [FromBody] UpdateTableStatusRequest request, CancellationToken ct)
     {
         try

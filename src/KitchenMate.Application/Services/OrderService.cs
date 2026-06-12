@@ -59,6 +59,7 @@ public class OrderService(IAppDbContext db)
     public async Task<IReadOnlyList<OrderDto>> GetOrdersAsync(
         OrderStatus? status = null,
         OrderType? type = null,
+        Guid? tableId = null,
         bool kitchenQueueOnly = false,
         CancellationToken ct = default)
     {
@@ -74,6 +75,9 @@ public class OrderService(IAppDbContext db)
 
         if (type.HasValue)
             query = query.Where(o => o.Type == type.Value);
+
+        if (tableId.HasValue)
+            query = query.Where(o => o.TableId == tableId.Value);
 
         var orders = await query.OrderBy(o => o.CreatedAt).ToListAsync(ct);
         return orders.Select(Map).ToList();
