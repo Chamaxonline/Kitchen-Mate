@@ -18,7 +18,7 @@ public static class DependencyInjection
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
 
-        services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+        services.AddIdentityCore<ApplicationUser>(options =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequireLowercase = true;
@@ -26,6 +26,7 @@ public static class DependencyInjection
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequiredLength = 8;
             })
+            .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
