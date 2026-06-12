@@ -76,7 +76,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Copy `frontend/.env.local.example` to `frontend/.env.local` if the API is not on `http://localhost:5257`.
+Open [http://localhost:3000](http://localhost:3000) (or `https://localhost:3000` if using HTTPS). Copy `frontend/.env.local.example` to `frontend/.env.local` and set `NEXT_PUBLIC_API_URL` to your API URL (default HTTPS profile: `https://localhost:7067`).
 
 ## API overview
 

@@ -2,7 +2,7 @@ import { getToken } from "./auth";
 import type { AuthUser } from "./auth";
 import type { MenuCategory, MenuItem, Order, OrderStatus, OrderType, Table } from "./types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5257";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7067";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = getToken();
