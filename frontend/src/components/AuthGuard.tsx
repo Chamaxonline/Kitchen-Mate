@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { LoadingState } from "@/components/ui/LoadingState";
 
-const publicPaths = ["/login"];
+const publicPaths = ["/login", "/signup"];
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -17,7 +17,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     if (!user && !publicPaths.includes(pathname)) {
       router.replace("/login");
     }
-    if (user && pathname === "/login") {
+    if (user && (pathname === "/login" || pathname === "/signup")) {
       router.replace("/");
     }
   }, [user, loading, pathname, router]);

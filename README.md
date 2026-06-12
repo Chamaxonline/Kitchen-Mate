@@ -1,6 +1,6 @@
 # Kitchen Mate
 
-Restaurant management system for order entry, kitchen workflow, and table management.
+Multi-tenant restaurant management SaaS for order entry, kitchen workflow, and table management. Each restaurant gets an isolated workspace with its own menu, tables, orders, and staff.
 
 ## Stack
 
@@ -77,6 +77,16 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) (or `https://localhost:3000` if using HTTPS). Copy `frontend/.env.local.example` to `frontend/.env.local` and set `NEXT_PUBLIC_API_URL` to your API URL (default HTTPS profile: `https://localhost:7067`).
+
+### SaaS — register a new restaurant
+
+1. Open [http://localhost:3000/signup](http://localhost:3000/signup)
+2. Enter restaurant name, workspace slug, and admin account details
+3. You are signed in as **Admin** with a fresh menu (14 items) and 10 tables
+
+Or use the demo tenant (`demo`) with the accounts below.
+
+**API:** `POST /api/tenants/register` — creates tenant, admin user, and default menu/tables.
 
 ## API overview
 

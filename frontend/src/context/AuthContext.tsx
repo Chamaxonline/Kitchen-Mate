@@ -3,12 +3,19 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { clearAuth, getStoredAuth, storeAuth, type AuthUser } from "@/lib/auth";
-import { login as apiLogin } from "@/lib/api";
+import { login as apiLogin, registerTenant as apiRegister } from "@/lib/api";
 
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (body: {
+    restaurantName: string;
+    slug: string;
+    adminEmail: string;
+    adminPassword: string;
+    adminFullName: string;
+  }) => Promise<void>;
   logout: () => void;
   isManager: boolean;
 }
@@ -31,6 +38,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       async login(email, password) {
         const auth = await apiLogin(email, password);
+        storeAuth(auth);
+        setUser(auth);
+        router.push("/");
+      },
+      async register(body) {
+        const auth = await apiRegister(body);
         storeAuth(auth);
         setUser(auth);
         router.push("/");

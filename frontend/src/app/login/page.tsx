@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { ChefHat, Lock, Mail } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -99,6 +100,13 @@ export default function LoginPage() {
             ))}
           </div>
         </Card>
+
+        <p className="text-center text-sm text-muted">
+          New restaurant?{" "}
+          <Link href="/signup" className="font-semibold text-brand hover:underline">
+            Create your workspace
+          </Link>
+        </p>
       </div>
     </div>
   );

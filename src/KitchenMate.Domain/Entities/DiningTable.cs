@@ -2,8 +2,10 @@ using KitchenMate.Domain.Enums;
 
 namespace KitchenMate.Domain.Entities;
 
-public class DiningTable : BaseEntity
+public class DiningTable : BaseEntity, ITenantEntity
 {
+    public Guid TenantId { get; set; }
+    public Tenant Tenant { get; set; } = null!;
     public string Number { get; set; } = string.Empty;
     public int Capacity { get; set; }
     public TableStatus Status { get; set; } = TableStatus.Available;

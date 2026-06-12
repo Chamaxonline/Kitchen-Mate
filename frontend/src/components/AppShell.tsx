@@ -38,9 +38,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-white shadow-lg shadow-orange-900/30">
             <ChefHat className="h-5 w-5" />
           </div>
-          <div>
-            <p className="font-bold tracking-tight">Kitchen Mate</p>
-            <p className="text-xs text-stone-400">Restaurant POS</p>
+          <div className="min-w-0">
+            <p className="truncate font-bold tracking-tight">{user.tenantName || "Kitchen Mate"}</p>
+            <p className="truncate text-xs text-stone-400">
+              {user.tenantSlug ? `${user.tenantSlug} · ` : ""}Restaurant POS
+            </p>
           </div>
         </div>
 

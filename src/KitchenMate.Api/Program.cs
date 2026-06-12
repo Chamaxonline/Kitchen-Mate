@@ -90,12 +90,12 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await SeedData.InitializeAsync(db);
-    await IdentitySeedData.InitializeAsync(scope.ServiceProvider);
+    var demoTenant = await SeedData.InitializeAsync(db);
+    await IdentitySeedData.InitializeAsync(scope.ServiceProvider, demoTenant.Id);
 
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var waiter = await userManager.FindByEmailAsync("waiter@kitchen.local");
-    await SeedData.SeedSampleOrdersAsync(db, waiter?.Id);
+    await SeedData.SeedSampleOrdersAsync(db, demoTenant.Id, waiter?.Id);
 }
 
 if (app.Environment.IsDevelopment())

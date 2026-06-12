@@ -1,6 +1,7 @@
 using KitchenMate.Application.Interfaces;
 using KitchenMate.Infrastructure.Identity;
 using KitchenMate.Infrastructure.Persistence;
+using KitchenMate.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -14,6 +15,9 @@ public static class DependencyInjection
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? "Server=(localdb)\\mssqllocaldb;Database=KitchenMate;Trusted_Connection=True;TrustServerCertificate=True";
+
+        services.AddHttpContextAccessor();
+        services.AddScoped<ITenantContext, TenantContext>();
 
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
@@ -34,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<JwtTokenGenerator>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ITenantService, TenantService>();
 
         return services;
     }

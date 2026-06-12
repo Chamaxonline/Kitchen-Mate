@@ -5,6 +5,9 @@ export interface AuthUser {
   fullName: string;
   role: string;
   expiresAt: string;
+  tenantId: string;
+  tenantName: string;
+  tenantSlug: string;
 }
 
 const STORAGE_KEY = "kitchenmate_auth";
@@ -15,7 +18,7 @@ export function getStoredAuth(): AuthUser | null {
   if (!raw) return null;
   try {
     const auth = JSON.parse(raw) as AuthUser;
-    if (new Date(auth.expiresAt) <= new Date()) {
+    if (new Date(auth.expiresAt) <= new Date() || !auth.tenantId) {
       localStorage.removeItem(STORAGE_KEY);
       return null;
     }

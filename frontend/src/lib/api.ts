@@ -43,6 +43,10 @@ export async function login(email: string, password: string): Promise<AuthUser> 
   }
 
   const data = await res.json();
+  return mapAuthResponse(data);
+}
+
+function mapAuthResponse(data: Record<string, string>): AuthUser {
   return {
     token: data.token,
     userId: data.userId,
@@ -50,7 +54,38 @@ export async function login(email: string, password: string): Promise<AuthUser> 
     fullName: data.fullName,
     role: data.role,
     expiresAt: data.expiresAt,
+    tenantId: data.tenantId,
+    tenantName: data.tenantName,
+    tenantSlug: data.tenantSlug,
   };
+}
+
+export async function registerTenant(body: {
+  restaurantName: string;
+  slug: string;
+  adminEmail: string;
+  adminPassword: string;
+  adminFullName: string;
+}): Promise<AuthUser> {
+  const res = await fetch(`${API_URL}/api/tenants/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      restaurantName: body.restaurantName,
+      slug: body.slug,
+      adminEmail: body.adminEmail,
+      adminPassword: body.adminPassword,
+      adminFullName: body.adminFullName,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message ?? "Registration failed.");
+  }
+
+  const data = await res.json();
+  return mapAuthResponse(data);
 }
 
 export function getMenu() {

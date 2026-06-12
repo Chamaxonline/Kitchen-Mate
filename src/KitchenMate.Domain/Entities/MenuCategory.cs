@@ -1,7 +1,9 @@
 namespace KitchenMate.Domain.Entities;
 
-public class MenuCategory : BaseEntity
+public class MenuCategory : BaseEntity, ITenantEntity
 {
+    public Guid TenantId { get; set; }
+    public Tenant Tenant { get; set; } = null!;
     public string Name { get; set; } = string.Empty;
     public int SortOrder { get; set; }
 

@@ -1,6 +1,7 @@
 using KitchenMate.Domain.Constants;
 using KitchenMate.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KitchenMate.Infrastructure.Persistence;
@@ -15,7 +16,7 @@ public static class IdentitySeedData
         ("admin@kitchen.local", "Password123!", "Demo Admin", Roles.Admin)
     ];
 
-    public static async Task InitializeAsync(IServiceProvider services)
+    public static async Task InitializeAsync(IServiceProvider services, Guid tenantId)
     {
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
@@ -36,11 +37,23 @@ public static class IdentitySeedData
                 UserName = demo.Email,
                 Email = demo.Email,
                 FullName = demo.FullName,
-                EmailConfirmed = true
+                EmailConfirmed = true,
+                TenantId = tenantId
             };
 
             await userManager.CreateAsync(user, demo.Password);
             await userManager.AddToRoleAsync(user, demo.Role);
+        }
+
+        // Assign tenant to existing demo users created before multi-tenancy
+        var usersWithoutTenant = await userManager.Users
+            .Where(u => u.TenantId == Guid.Empty)
+            .ToListAsync();
+
+        foreach (var user in usersWithoutTenant)
+        {
+            user.TenantId = tenantId;
+            await userManager.UpdateAsync(user);
         }
     }
 }

@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using KitchenMate.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -8,7 +9,7 @@ namespace KitchenMate.Infrastructure.Identity;
 
 public class JwtTokenGenerator(IConfiguration configuration)
 {
-    public (string Token, DateTime ExpiresAt) Generate(ApplicationUser user, string role)
+    public (string Token, DateTime ExpiresAt) Generate(ApplicationUser user, string role, Tenant tenant)
     {
         var key = configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not configured.");
         var issuer = configuration["Jwt:Issuer"] ?? "KitchenMate";
@@ -21,7 +22,10 @@ public class JwtTokenGenerator(IConfiguration configuration)
             new(ClaimTypes.NameIdentifier, user.Id),
             new(ClaimTypes.Email, user.Email ?? string.Empty),
             new(ClaimTypes.Name, user.FullName),
-            new(ClaimTypes.Role, role)
+            new(ClaimTypes.Role, role),
+            new("tenant_id", tenant.Id.ToString()),
+            new("tenant_slug", tenant.Slug),
+            new("tenant_name", tenant.Name)
         };
 
         var credentials = new SigningCredentials(

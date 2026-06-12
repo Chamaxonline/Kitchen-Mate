@@ -1,3 +1,4 @@
+using KitchenMate.Domain.Constants;
 using KitchenMate.Domain.Entities;
 using KitchenMate.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -6,19 +7,24 @@ namespace KitchenMate.Infrastructure.Persistence;
 
 public static class SeedData
 {
-    public static async Task InitializeAsync(ApplicationDbContext db)
+    public static async Task<Tenant> InitializeAsync(ApplicationDbContext db)
     {
         await db.Database.MigrateAsync();
-        await SeedMenuAndTablesAsync(db);
+        return await EnsureDemoTenantAsync(db);
     }
 
-    public static async Task SeedSampleOrdersAsync(ApplicationDbContext db, string? waiterUserId)
+    public static async Task SeedSampleOrdersAsync(ApplicationDbContext db, Guid tenantId, string? waiterUserId)
     {
-        if (await db.Orders.AnyAsync())
+        if (await db.Orders.IgnoreQueryFilters().AnyAsync(o => o.TenantId == tenantId))
             return;
 
-        var items = await db.MenuItems.AsNoTracking().ToDictionaryAsync(i => i.Name);
-        var tables = await db.Tables.ToDictionaryAsync(t => t.Number);
+        var items = await db.MenuItems.IgnoreQueryFilters()
+            .Where(i => i.TenantId == tenantId)
+            .AsNoTracking()
+            .ToDictionaryAsync(i => i.Name);
+        var tables = await db.Tables.IgnoreQueryFilters()
+            .Where(t => t.TenantId == tenantId)
+            .ToDictionaryAsync(t => t.Number);
 
         if (items.Count == 0 || tables.Count == 0)
             return;
@@ -48,7 +54,6 @@ public static class SeedData
         }
 
         var now = DateTime.UtcNow;
-
         var orders = new List<Order>();
 
         void Add(Order? order)
@@ -58,6 +63,7 @@ public static class SeedData
 
         Add(TryOrder(new Order
         {
+            TenantId = tenantId,
             OrderNumber = $"ORD-{now:yyyyMMdd}-0001",
             Type = OrderType.DineIn,
             Status = OrderStatus.SentToKitchen,
@@ -69,6 +75,7 @@ public static class SeedData
 
         Add(TryOrder(new Order
         {
+            TenantId = tenantId,
             OrderNumber = $"ORD-{now:yyyyMMdd}-0002",
             Type = OrderType.DineIn,
             Status = OrderStatus.InKitchen,
@@ -79,6 +86,7 @@ public static class SeedData
 
         Add(TryOrder(new Order
         {
+            TenantId = tenantId,
             OrderNumber = $"ORD-{now:yyyyMMdd}-0003",
             Type = OrderType.Takeaway,
             Status = OrderStatus.Ready,
@@ -89,6 +97,7 @@ public static class SeedData
 
         Add(TryOrder(new Order
         {
+            TenantId = tenantId,
             OrderNumber = $"ORD-{now.AddDays(-1):yyyyMMdd}-0001",
             Type = OrderType.DineIn,
             Status = OrderStatus.Completed,
@@ -100,6 +109,7 @@ public static class SeedData
 
         Add(TryOrder(new Order
         {
+            TenantId = tenantId,
             OrderNumber = $"ORD-{now.AddDays(-1):yyyyMMdd}-0002",
             Type = OrderType.Takeaway,
             Status = OrderStatus.Completed,
@@ -109,6 +119,7 @@ public static class SeedData
 
         Add(TryOrder(new Order
         {
+            TenantId = tenantId,
             OrderNumber = $"ORD-{now.AddDays(-2):yyyyMMdd}-0001",
             Type = OrderType.DineIn,
             Status = OrderStatus.Cancelled,
@@ -129,45 +140,24 @@ public static class SeedData
         await db.SaveChangesAsync();
     }
 
-    private static async Task SeedMenuAndTablesAsync(ApplicationDbContext db)
+    private static async Task<Tenant> EnsureDemoTenantAsync(ApplicationDbContext db)
     {
-        if (await db.MenuCategories.AnyAsync())
-            return;
+        var tenant = await db.Tenants.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(t => t.Slug == TenantConstants.DemoSlug);
 
-        var appetizers = new MenuCategory { Name = "Appetizers", SortOrder = 1 };
-        var mains = new MenuCategory { Name = "Main Courses", SortOrder = 2 };
-        var desserts = new MenuCategory { Name = "Desserts", SortOrder = 3 };
-        var drinks = new MenuCategory { Name = "Drinks", SortOrder = 4 };
-
-        db.MenuCategories.AddRange(appetizers, mains, desserts, drinks);
-
-        db.MenuItems.AddRange(
-            new MenuItem { Category = appetizers, Name = "Spring Rolls", Description = "Crispy vegetable rolls", Price = 6.50m },
-            new MenuItem { Category = appetizers, Name = "Soup of the Day", Description = "Chef's daily selection", Price = 5.00m },
-            new MenuItem { Category = appetizers, Name = "Garlic Bread", Description = "Toasted with herb butter", Price = 4.50m },
-            new MenuItem { Category = appetizers, Name = "Caesar Salad", Description = "Romaine, parmesan, croutons", Price = 8.00m },
-            new MenuItem { Category = mains, Name = "Grilled Chicken", Description = "Served with rice and salad", Price = 14.99m },
-            new MenuItem { Category = mains, Name = "Beef Burger", Description = "Angus beef with fries", Price = 12.50m },
-            new MenuItem { Category = mains, Name = "Vegetable Pasta", Description = "Seasonal vegetables in tomato sauce", Price = 11.00m },
-            new MenuItem { Category = mains, Name = "Fish & Chips", Description = "Beer-battered cod with tartar sauce", Price = 13.50m },
-            new MenuItem { Category = desserts, Name = "Chocolate Cake", Description = "Warm slice with vanilla cream", Price = 6.00m },
-            new MenuItem { Category = desserts, Name = "Ice Cream Scoop", Description = "Vanilla, chocolate, or strawberry", Price = 3.50m },
-            new MenuItem { Category = drinks, Name = "Soft Drink", Price = 2.50m },
-            new MenuItem { Category = drinks, Name = "Fresh Juice", Price = 4.00m },
-            new MenuItem { Category = drinks, Name = "Coffee", Price = 3.00m },
-            new MenuItem { Category = drinks, Name = "Iced Tea", Price = 3.50m }
-        );
-
-        for (var i = 1; i <= 10; i++)
+        if (tenant is null)
         {
-            db.Tables.Add(new DiningTable
+            tenant = new Tenant
             {
-                Number = i.ToString(),
-                Capacity = i <= 4 ? 2 : i <= 8 ? 4 : 6,
-                Status = TableStatus.Available
-            });
+                Name = TenantConstants.DemoName,
+                Slug = TenantConstants.DemoSlug,
+                IsActive = true
+            };
+            db.Tenants.Add(tenant);
+            await db.SaveChangesAsync();
         }
 
-        await db.SaveChangesAsync();
+        await TenantSeedHelper.SeedMenuAndTablesAsync(db, tenant.Id);
+        return tenant;
     }
 }

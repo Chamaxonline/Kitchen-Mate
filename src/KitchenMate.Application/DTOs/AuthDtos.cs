@@ -8,8 +8,18 @@ public record AuthResponse(
     string Email,
     string FullName,
     string Role,
-    DateTime ExpiresAt);
+    DateTime ExpiresAt,
+    Guid TenantId,
+    string TenantName,
+    string TenantSlug);
 
-public record UserDto(string Id, string Email, string FullName, string Role);
+public record UserDto(
+    string Id,
+    string Email,
+    string FullName,
+    string Role,
+    Guid TenantId,
+    string TenantName,
+    string TenantSlug);
 
 public record CreateUserRequest(string Email, string Password, string FullName, string Role);

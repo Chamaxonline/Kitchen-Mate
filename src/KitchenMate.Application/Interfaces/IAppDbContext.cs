@@ -5,6 +5,7 @@ namespace KitchenMate.Application.Interfaces;
 
 public interface IAppDbContext
 {
+    DbSet<Tenant> Tenants { get; }
     DbSet<DiningTable> Tables { get; }
     DbSet<MenuCategory> MenuCategories { get; }
     DbSet<MenuItem> MenuItems { get; }
