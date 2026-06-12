@@ -179,6 +179,7 @@ export default function HomePage() {
   if (loading) return <LoadingState label="Loading today's overview..." />;
 
   const firstName = user?.fullName?.split(" ")[0] ?? "there";
+  const useRollingDay = stats !== null && stats.todayOrders === 0 && stats.last24hOrders > 0;
 
   return (
     <div>
@@ -209,21 +210,29 @@ export default function HomePage() {
         <>
           <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
-              label="Orders today"
-              value={String(stats.todayOrders)}
-              hint={`${stats.todayCompleted} completed · ${stats.todayDineIn} dine-in · ${stats.todayTakeaway} takeaway`}
+              label={useRollingDay ? "Orders (24h)" : "Orders today"}
+              value={String(useRollingDay ? stats.last24hOrders : stats.todayOrders)}
+              hint={
+                useRollingDay
+                  ? `${stats.last24hCompleted} completed in the last 24 hours`
+                  : stats.todayOrders > 0
+                    ? `${stats.todayCompleted} completed · ${stats.todayDineIn} dine-in · ${stats.todayTakeaway} takeaway`
+                    : "Resets at midnight in your timezone"
+              }
               icon={Receipt}
               accent="from-orange-500 to-amber-500"
             />
             <StatCard
-              label="Revenue today"
-              value={formatCurrency(stats.todayRevenue)}
+              label={useRollingDay ? "Revenue (24h)" : "Revenue today"}
+              value={formatCurrency(useRollingDay ? stats.last24hRevenue : stats.todayRevenue)}
               hint={
-                stats.todayCompleted > 0
-                  ? `${stats.todayCompleted} completed · avg ${formatCurrency(stats.avgOrderValue)}`
-                  : stats.todayOpenValue > 0
-                    ? `${formatCurrency(stats.todayOpenValue)} in open orders`
-                    : "Completes when orders are marked done"
+                useRollingDay
+                  ? `${stats.last24hCompleted} completed orders`
+                  : stats.todayCompleted > 0
+                    ? `${stats.todayCompleted} completed · avg ${formatCurrency(stats.avgOrderValue)}`
+                    : stats.todayOpenValue > 0
+                      ? `${formatCurrency(stats.todayOpenValue)} in open orders`
+                      : "Updates when orders are completed"
               }
               icon={DollarSign}
               accent="from-emerald-500 to-teal-500"
@@ -254,23 +263,29 @@ export default function HomePage() {
             <Card>
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-bold text-stone-900">Orders today</h2>
-                  <p className="text-sm text-muted">Latest orders placed today</p>
+                  <h2 className="text-lg font-bold text-stone-900">
+                    {stats.recentToday.length > 0 ? "Orders today" : "Recent orders"}
+                  </h2>
+                  <p className="text-sm text-muted">
+                    {stats.recentToday.length > 0
+                      ? "Latest orders placed since midnight"
+                      : "Latest orders from the past 24 hours"}
+                  </p>
                 </div>
                 <Link href="/orders/history" className="text-sm font-semibold text-brand hover:underline">
                   Full history →
                 </Link>
               </div>
 
-              {stats.recentToday.length === 0 ? (
+              {(stats.recentToday.length > 0 ? stats.recentToday : stats.recentOrders).length === 0 ? (
                 <EmptyState
                   icon={Receipt}
-                  title="No orders yet today"
+                  title="No recent orders"
                   description="New orders will appear here as they come in."
                 />
               ) : (
                 <ul className="divide-y divide-border">
-                  {stats.recentToday.map((order) => (
+                  {(stats.recentToday.length > 0 ? stats.recentToday : stats.recentOrders).map((order) => (
                     <li key={order.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
                       <div className="min-w-0">
                         <p className="font-semibold text-stone-900">{order.orderNumber}</p>

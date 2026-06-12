@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { formatDateTime } from "@/lib/dates";
 import type { Order } from "@/lib/types";
 import { OrderTypeLabel } from "@/lib/types";
 
@@ -52,7 +53,7 @@ export default function OrderHistoryPage() {
                   <p className="mt-1 text-sm text-muted">
                     {OrderTypeLabel[order.type]}
                     {order.tableNumber ? ` · Table ${order.tableNumber}` : ""} ·{" "}
-                    {new Date(order.createdAt).toLocaleString()}
+                    {formatDateTime(order.createdAt)}
                   </p>
                 </div>
                 <div className="text-right">

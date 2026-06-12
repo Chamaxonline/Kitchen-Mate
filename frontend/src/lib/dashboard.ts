@@ -1,4 +1,7 @@
+import { formatTime as formatTimeFromDate, isToday, localDateKey, parseApiDate } from "./dates";
 import type { Order, Table } from "./types";
+
+const HOURS_24_MS = 24 * 60 * 60 * 1000;
 
 export interface DashboardStats {
   todayOrders: number;
@@ -9,6 +12,9 @@ export interface DashboardStats {
   todayTakeaway: number;
   todayCancelled: number;
   avgOrderValue: number;
+  last24hOrders: number;
+  last24hRevenue: number;
+  last24hCompleted: number;
   kitchenQueue: number;
   inKitchen: number;
   readyToServe: number;
@@ -18,15 +24,17 @@ export interface DashboardStats {
   tablesReserved: number;
   tablesTotal: number;
   recentToday: Order[];
+  recentOrders: Order[];
 }
 
-function localDateKey(date: Date | string): string {
-  const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleDateString("en-CA");
+function isWithinLast24Hours(iso: string): boolean {
+  return Date.now() - parseApiDate(iso).getTime() <= HOURS_24_MS;
 }
 
-function isToday(iso: string): boolean {
-  return localDateKey(iso) === localDateKey(new Date());
+function completedWithinLast24Hours(order: Order): boolean {
+  if (order.status !== 4) return false;
+  const completedAt = order.updatedAt ?? order.createdAt;
+  return isWithinLast24Hours(completedAt);
 }
 
 function completedToday(order: Order): boolean {
@@ -48,8 +56,16 @@ export function buildDashboardStats(orders: Order[], tables: Table[]): Dashboard
   const readyToServe = orders.filter((o) => o.status === 3).length;
   const activeOrders = orders.filter((o) => o.status >= 1 && o.status <= 3).length;
 
+  const last24h = orders.filter((o) => isWithinLast24Hours(o.createdAt));
+  const completedLast24h = orders.filter(completedWithinLast24Hours);
+  const last24hRevenue = completedLast24h.reduce((sum, o) => sum + o.total, 0);
+
   const recentToday = [...today]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .sort((a, b) => parseApiDate(b.createdAt).getTime() - parseApiDate(a.createdAt).getTime())
+    .slice(0, 6);
+
+  const recentOrders = [...last24h]
+    .sort((a, b) => parseApiDate(b.createdAt).getTime() - parseApiDate(a.createdAt).getTime())
     .slice(0, 6);
 
   return {
@@ -61,6 +77,9 @@ export function buildDashboardStats(orders: Order[], tables: Table[]): Dashboard
     todayTakeaway: today.filter((o) => o.type === 1).length,
     todayCancelled: today.filter((o) => o.status === 5 && isToday(o.updatedAt ?? o.createdAt)).length,
     avgOrderValue: completedTodayOrders.length ? todayRevenue / completedTodayOrders.length : 0,
+    last24hOrders: last24h.length,
+    last24hRevenue,
+    last24hCompleted: completedLast24h.length,
     kitchenQueue,
     inKitchen,
     readyToServe,
@@ -70,6 +89,7 @@ export function buildDashboardStats(orders: Order[], tables: Table[]): Dashboard
     tablesReserved: tables.filter((t) => t.status === 2).length,
     tablesTotal: tables.length,
     recentToday,
+    recentOrders,
   };
 }
 
@@ -77,9 +97,7 @@ export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount);
 }
 
-export function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-}
+export { formatTimeFromDate as formatTime };
 
 export function todayLabel(): string {
   return new Date().toLocaleDateString([], {
@@ -88,4 +106,8 @@ export function todayLabel(): string {
     day: "numeric",
     year: "numeric",
   });
+}
+
+export function todayDateKey(): string {
+  return localDateKey(new Date());
 }

@@ -1,4 +1,5 @@
 using System.Text;
+using KitchenMate.Api.Json;
 using KitchenMate.Api.Middleware;
 using KitchenMate.Application;
 using KitchenMate.Domain.Constants;
@@ -12,7 +13,12 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new UtcDateTimeConverter());
+        options.JsonSerializerOptions.Converters.Add(new NullableUtcDateTimeConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {

@@ -171,6 +171,14 @@ public class OrderService(IAppDbContext db)
         return $"ORD-{today:yyyyMMdd}-{(count + 1):D4}";
     }
 
+    private static DateTime AsUtc(DateTime value) =>
+        value.Kind switch
+        {
+            DateTimeKind.Utc => value,
+            DateTimeKind.Local => value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+        };
+
     private static OrderDto Map(Order o) =>
         new(
             o.Id,
@@ -181,8 +189,8 @@ public class OrderService(IAppDbContext db)
             o.Table?.Number,
             o.Notes,
             o.Total,
-            o.CreatedAt,
-            o.UpdatedAt,
+            AsUtc(o.CreatedAt),
+            o.UpdatedAt is null ? null : AsUtc(o.UpdatedAt.Value),
             o.Items.Select(i => new OrderItemDto(
                 i.Id, i.MenuItemId, i.MenuItemName, i.Quantity, i.UnitPrice, i.Notes, i.LineTotal)).ToList());
 }
