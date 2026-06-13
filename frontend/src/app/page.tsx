@@ -23,6 +23,7 @@ import {
   type DashboardStats,
 } from "@/lib/dashboard";
 import { OrderStatusBadge } from "@/components/StatusBadge";
+import { formatCookTime } from "@/lib/cookTime";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LoadingState } from "@/components/ui/LoadingState";
@@ -292,6 +293,9 @@ export default function HomePage() {
                         <p className="truncate text-sm text-muted">
                           {OrderTypeLabel[order.type]}
                           {order.tableNumber ? ` · Table ${order.tableNumber}` : ""} · {formatTime(order.createdAt)}
+                          {order.estimatedCookMinutes > 0 && order.status >= 1 && order.status <= 3
+                            ? ` · ${formatCookTime(order.estimatedCookMinutes)}`
+                            : ""}
                         </p>
                       </div>
                       <div className="flex shrink-0 flex-col items-end gap-1">

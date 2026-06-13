@@ -142,6 +142,7 @@ export function createMenuItem(body: {
   name: string;
   description?: string;
   price: number;
+  cookTimeMinutes: number;
 }) {
   return request<MenuItem>("/api/menu/items", {
     method: "POST",
@@ -167,7 +168,7 @@ export function createTeamUser(body: {
 
 export function updateMenuItem(
   id: string,
-  body: { name: string; description?: string; price: number; isAvailable: boolean },
+  body: { name: string; description?: string; price: number; cookTimeMinutes: number; isAvailable: boolean },
 ) {
   return request<MenuItem>(`/api/menu/items/${id}`, {
     method: "PUT",

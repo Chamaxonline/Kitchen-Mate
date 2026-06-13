@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { Minus, Plus, ShoppingBag, Utensils } from "lucide-react";
 import { createOrder, getMenu, getTables } from "@/lib/api";
+import { CookTimeBadge } from "@/components/CookTimeBadge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { estimateOrderCookMinutes, formatCookTime } from "@/lib/cookTime";
 import type { CartLine, MenuCategory, OrderType, Table } from "@/lib/types";
 
 export default function NewOrderPage() {
@@ -31,7 +33,7 @@ export default function NewOrderPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  function addItem(item: { id: string; name: string; price: number }) {
+  function addItem(item: { id: string; name: string; price: number; cookTimeMinutes: number }) {
     setCart((prev) => {
       const existing = prev.find((line) => line.menuItemId === item.id);
       if (existing) {
@@ -39,9 +41,21 @@ export default function NewOrderPage() {
           line.menuItemId === item.id ? { ...line, quantity: line.quantity + 1 } : line,
         );
       }
-      return [...prev, { menuItemId: item.id, name: item.name, price: item.price, quantity: 1 }];
+      return [
+        ...prev,
+        {
+          menuItemId: item.id,
+          name: item.name,
+          price: item.price,
+          cookTimeMinutes: item.cookTimeMinutes,
+          quantity: 1,
+        },
+      ];
     });
   }
+
+  const total = cart.reduce((sum, line) => sum + line.price * line.quantity, 0);
+  const estCookMinutes = estimateOrderCookMinutes(cart);
 
   function updateQty(menuItemId: string, delta: number) {
     setCart((prev) =>
@@ -52,8 +66,6 @@ export default function NewOrderPage() {
         .filter((line) => line.quantity > 0),
     );
   }
-
-  const total = cart.reduce((sum, line) => sum + line.price * line.quantity, 0);
 
   async function placeOrder() {
     setError(null);
@@ -76,7 +88,7 @@ export default function NewOrderPage() {
         notes: notes || null,
         items: cart.map((line) => ({ menuItemId: line.menuItemId, quantity: line.quantity })),
       });
-      setMessage(`Order ${order.orderNumber} sent to kitchen.`);
+      setMessage(`Order ${order.orderNumber} sent to kitchen (~${formatCookTime(order.estimatedCookMinutes)}).`);
       setCart([]);
       setNotes("");
       setTableId("");
@@ -153,6 +165,9 @@ export default function NewOrderPage() {
                         </span>
                       </div>
                       {item.description && <p className="mt-1 text-xs text-muted">{item.description}</p>}
+                      <div className="mt-2">
+                        <CookTimeBadge minutes={item.cookTimeMinutes} />
+                      </div>
                     </button>
                   ))}
               </div>
@@ -173,7 +188,9 @@ export default function NewOrderPage() {
                 <li key={line.menuItemId} className="flex items-center justify-between gap-3 rounded-xl bg-stone-50 p-3">
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-stone-900">{line.name}</p>
-                    <p className="text-xs text-muted">${line.price.toFixed(2)} each</p>
+                    <p className="text-xs text-muted">
+                      ${line.price.toFixed(2)} each · {formatCookTime(line.cookTimeMinutes)}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -207,6 +224,13 @@ export default function NewOrderPage() {
               placeholder="Allergies, spice level, etc."
             />
           </label>
+
+          {estCookMinutes > 0 && cart.length > 0 && (
+            <div className="mt-3 flex items-center justify-between rounded-xl bg-amber-50 px-4 py-3 text-sm">
+              <span className="font-medium text-amber-900">Est. kitchen time</span>
+              <span className="font-bold text-amber-900">{formatCookTime(estCookMinutes)}</span>
+            </div>
+          )}
 
           <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
             <span className="text-muted">Total</span>

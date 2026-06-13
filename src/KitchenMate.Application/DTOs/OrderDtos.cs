@@ -8,6 +8,7 @@ public record OrderItemDto(
     string MenuItemName,
     int Quantity,
     decimal UnitPrice,
+    int CookTimeMinutes,
     string? Notes,
     decimal LineTotal);
 
@@ -20,6 +21,7 @@ public record OrderDto(
     string? TableNumber,
     string? Notes,
     decimal Total,
+    int EstimatedCookMinutes,
     DateTime CreatedAt,
     DateTime? UpdatedAt,
     IReadOnlyList<OrderItemDto> Items);

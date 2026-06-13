@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, ClipboardList } from "lucide-react";
 import { getOrders, updateOrderStatus } from "@/lib/api";
+import { OrderCookEta } from "@/components/CookTimeBadge";
 import { OrderStatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -79,6 +80,15 @@ export default function ActiveOrdersPage() {
                     {OrderTypeLabel[order.type]}
                     {order.tableNumber ? ` · Table ${order.tableNumber}` : ""} · ${order.total.toFixed(2)}
                   </p>
+                  {order.estimatedCookMinutes > 0 && order.status !== 3 && (
+                    <div className="mt-1">
+                      <OrderCookEta
+                        estimatedMinutes={order.estimatedCookMinutes}
+                        createdAt={order.createdAt}
+                        compact
+                      />
+                    </div>
+                  )}
                 </div>
                 <OrderStatusBadge status={order.status} />
               </div>

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Clock, Flame } from "lucide-react";
 import { getOrders, updateOrderStatus } from "@/lib/api";
+import { OrderCookEta, CookTimeBadge } from "@/components/CookTimeBadge";
 import { OrderStatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -32,12 +33,19 @@ function OrderTicket({
         <OrderStatusBadge status={order.status} />
       </div>
 
+      {order.estimatedCookMinutes > 0 && (
+        <div className="mb-3">
+          <OrderCookEta estimatedMinutes={order.estimatedCookMinutes} createdAt={order.createdAt} />
+        </div>
+      )}
+
       <ul className="mb-4 space-y-2 rounded-xl bg-stone-50 p-3 text-sm">
         {order.items.map((item) => (
-          <li key={item.id} className="flex justify-between gap-2">
+          <li key={item.id} className="flex items-center justify-between gap-2">
             <span>
               <span className="font-bold text-brand">{item.quantity}×</span> {item.menuItemName}
             </span>
+            <CookTimeBadge minutes={item.cookTimeMinutes} />
           </li>
         ))}
       </ul>

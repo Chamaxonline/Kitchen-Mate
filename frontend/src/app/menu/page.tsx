@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Settings2 } from "lucide-react";
+import { Plus, Settings2, Clock } from "lucide-react";
 import { createCategory, createMenuItem, getMenu, updateMenuItem } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { CookTimeBadge } from "@/components/CookTimeBadge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -17,6 +18,7 @@ export default function MenuAdminPage() {
   const [categoryName, setCategoryName] = useState("");
   const [itemName, setItemName] = useState("");
   const [itemPrice, setItemPrice] = useState("");
+  const [itemCookTime, setItemCookTime] = useState("10");
   const [categoryId, setCategoryId] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -50,9 +52,11 @@ export default function MenuAdminPage() {
         categoryId,
         name: itemName,
         price: Number(itemPrice),
+        cookTimeMinutes: Number(itemCookTime) || 10,
       });
       setItemName("");
       setItemPrice("");
+      setItemCookTime("10");
       setMessage("Item created.");
       load();
     } catch (e) {
@@ -67,6 +71,7 @@ export default function MenuAdminPage() {
         name: item.name,
         description: item.description ?? undefined,
         price: item.price,
+        cookTimeMinutes: item.cookTimeMinutes,
         isAvailable: !item.isAvailable,
       });
       load();
@@ -126,6 +131,21 @@ export default function MenuAdminPage() {
               step="0.01"
               className="w-full rounded-xl border border-border bg-stone-50 px-4 py-3 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
             />
+            <label className="block space-y-2">
+              <span className="flex items-center gap-1.5 text-sm font-semibold text-stone-700">
+                <Clock className="h-4 w-4" />
+                Cook time (minutes)
+              </span>
+              <input
+                value={itemCookTime}
+                onChange={(e) => setItemCookTime(e.target.value)}
+                placeholder="10"
+                type="number"
+                min={1}
+                max={240}
+                className="w-full rounded-xl border border-border bg-stone-50 px-4 py-3 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+              />
+            </label>
             <Button onClick={addItem}>Add item</Button>
           </div>
         </div>
@@ -151,6 +171,9 @@ export default function MenuAdminPage() {
                   <span className="font-medium text-stone-900">
                     {item.name}
                     <span className="ml-2 font-bold text-brand">${item.price.toFixed(2)}</span>
+                    <span className="ml-2">
+                      <CookTimeBadge minutes={item.cookTimeMinutes} />
+                    </span>
                     {!item.isAvailable && (
                       <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">
                         Unavailable

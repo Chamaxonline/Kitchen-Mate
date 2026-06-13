@@ -7,6 +7,7 @@ public class OrderItem : BaseEntity
     public string MenuItemName { get; set; } = string.Empty;
     public int Quantity { get; set; }
     public decimal UnitPrice { get; set; }
+    public int CookTimeMinutes { get; set; }
     public string? Notes { get; set; }
 
     public Order Order { get; set; } = null!;

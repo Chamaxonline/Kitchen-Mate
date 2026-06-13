@@ -28,6 +28,7 @@ export interface MenuItem {
   name: string;
   description: string | null;
   price: number;
+  cookTimeMinutes: number;
   isAvailable: boolean;
 }
 
@@ -51,6 +52,7 @@ export interface OrderItem {
   menuItemName: string;
   quantity: number;
   unitPrice: number;
+  cookTimeMinutes: number;
   notes: string | null;
   lineTotal: number;
 }
@@ -64,6 +66,7 @@ export interface Order {
   tableNumber: string | null;
   notes: string | null;
   total: number;
+  estimatedCookMinutes: number;
   createdAt: string;
   updatedAt: string | null;
   items: OrderItem[];
@@ -85,5 +88,6 @@ export interface CartLine {
   menuItemId: string;
   name: string;
   price: number;
+  cookTimeMinutes: number;
   quantity: number;
 }

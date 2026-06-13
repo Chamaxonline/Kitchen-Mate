@@ -45,6 +45,7 @@ public class OrderService(IAppDbContext db)
                     MenuItemName = menu.Name,
                     Quantity = req.Quantity,
                     UnitPrice = menu.Price,
+                    CookTimeMinutes = menu.CookTimeMinutes,
                     Notes = req.Notes
                 };
             }).ToList()
@@ -189,8 +190,9 @@ public class OrderService(IAppDbContext db)
             o.Table?.Number,
             o.Notes,
             o.Total,
+            CookTimeRules.EstimateOrderMinutes(o.Items.Select(i => i.CookTimeMinutes)),
             AsUtc(o.CreatedAt),
             o.UpdatedAt is null ? null : AsUtc(o.UpdatedAt.Value),
             o.Items.Select(i => new OrderItemDto(
-                i.Id, i.MenuItemId, i.MenuItemName, i.Quantity, i.UnitPrice, i.Notes, i.LineTotal)).ToList());
+                i.Id, i.MenuItemId, i.MenuItemName, i.Quantity, i.UnitPrice, i.CookTimeMinutes, i.Notes, i.LineTotal)).ToList());
 }

@@ -40,7 +40,8 @@ public static class SeedData
                         MenuItemId = menu.Id,
                         MenuItemName = menu.Name,
                         Quantity = l.Qty,
-                        UnitPrice = menu.Price
+                        UnitPrice = menu.Price,
+                        CookTimeMinutes = menu.CookTimeMinutes
                     };
                 })
                 .ToList();

@@ -1,6 +1,7 @@
 using KitchenMate.Application.DTOs;
 using KitchenMate.Application.Exceptions;
 using KitchenMate.Application.Interfaces;
+using KitchenMate.Domain;
 using KitchenMate.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -70,7 +71,8 @@ public class MenuService(IAppDbContext db)
             CategoryId = request.CategoryId,
             Name = request.Name,
             Description = request.Description,
-            Price = request.Price
+            Price = request.Price,
+            CookTimeMinutes = NormalizeCookTime(request.CookTimeMinutes)
         };
 
         db.MenuItems.Add(item);
@@ -86,6 +88,7 @@ public class MenuService(IAppDbContext db)
         item.Name = request.Name;
         item.Description = request.Description;
         item.Price = request.Price;
+        item.CookTimeMinutes = NormalizeCookTime(request.CookTimeMinutes);
         item.IsAvailable = request.IsAvailable;
         item.UpdatedAt = DateTime.UtcNow;
 
@@ -100,5 +103,18 @@ public class MenuService(IAppDbContext db)
         new(c.Id, c.Name, c.SortOrder);
 
     private static MenuItemDto MapItem(MenuItem i) =>
-        new(i.Id, i.CategoryId, i.Name, i.Description, i.Price, i.IsAvailable);
+        new(i.Id, i.CategoryId, i.Name, i.Description, i.Price, i.CookTimeMinutes, i.IsAvailable);
+
+    private static int NormalizeCookTime(int minutes)
+    {
+        try
+        {
+            CookTimeRules.Validate(minutes);
+            return minutes;
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            throw new BusinessRuleException(ex.Message);
+        }
+    }
 }
