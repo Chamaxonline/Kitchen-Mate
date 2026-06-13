@@ -62,6 +62,7 @@ public class ApplicationDbContext(
         {
             e.HasIndex(o => new { o.TenantId, o.OrderNumber }).IsUnique();
             e.Property(o => o.OrderNumber).HasMaxLength(30);
+            e.Property(o => o.StripePaymentIntentId).HasMaxLength(100);
             e.HasOne(o => o.Table).WithMany(t => t.Orders).HasForeignKey(o => o.TableId);
             e.HasOne(o => o.Tenant).WithMany().HasForeignKey(o => o.TenantId).OnDelete(DeleteBehavior.Restrict);
             e.HasQueryFilter(o => !tenantContext.HasTenant || o.TenantId == tenantContext.TenantId);

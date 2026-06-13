@@ -68,6 +68,8 @@ public static class SeedData
             OrderNumber = $"ORD-{now:yyyyMMdd}-0001",
             Type = OrderType.DineIn,
             Status = OrderStatus.SentToKitchen,
+            IsGuestOrder = false,
+            PaymentStatus = PaymentStatus.Paid,
             TableId = tables["1"].Id,
             Notes = "No spice on spring rolls",
             CreatedByUserId = waiterUserId,
@@ -80,6 +82,8 @@ public static class SeedData
             OrderNumber = $"ORD-{now:yyyyMMdd}-0002",
             Type = OrderType.DineIn,
             Status = OrderStatus.InKitchen,
+            IsGuestOrder = false,
+            PaymentStatus = PaymentStatus.Paid,
             TableId = tables["3"].Id,
             CreatedByUserId = waiterUserId,
             CreatedAt = now.AddMinutes(-25)
@@ -91,6 +95,8 @@ public static class SeedData
             OrderNumber = $"ORD-{now:yyyyMMdd}-0003",
             Type = OrderType.Takeaway,
             Status = OrderStatus.Ready,
+            IsGuestOrder = false,
+            PaymentStatus = PaymentStatus.Paid,
             Notes = "Pickup for Alex",
             CreatedByUserId = waiterUserId,
             CreatedAt = now.AddMinutes(-35)
@@ -102,6 +108,8 @@ public static class SeedData
             OrderNumber = $"ORD-{now.AddDays(-1):yyyyMMdd}-0001",
             Type = OrderType.DineIn,
             Status = OrderStatus.Completed,
+            IsGuestOrder = false,
+            PaymentStatus = PaymentStatus.Paid,
             TableId = tables["5"].Id,
             CreatedByUserId = waiterUserId,
             CreatedAt = now.AddDays(-1).AddHours(-2)
@@ -114,6 +122,8 @@ public static class SeedData
             OrderNumber = $"ORD-{now.AddDays(-1):yyyyMMdd}-0002",
             Type = OrderType.Takeaway,
             Status = OrderStatus.Completed,
+            IsGuestOrder = false,
+            PaymentStatus = PaymentStatus.Paid,
             CreatedByUserId = waiterUserId,
             CreatedAt = now.AddDays(-1).AddHours(-4)
         }, ("Beef Burger", 1), ("Chocolate Cake", 1), ("Soft Drink", 1)));
@@ -124,6 +134,8 @@ public static class SeedData
             OrderNumber = $"ORD-{now.AddDays(-2):yyyyMMdd}-0001",
             Type = OrderType.DineIn,
             Status = OrderStatus.Cancelled,
+            IsGuestOrder = false,
+            PaymentStatus = PaymentStatus.Paid,
             TableId = tables["7"].Id,
             Notes = "Guest left before order was served",
             CreatedByUserId = waiterUserId,

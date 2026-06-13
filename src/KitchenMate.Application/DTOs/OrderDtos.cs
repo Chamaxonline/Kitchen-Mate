@@ -22,6 +22,8 @@ public record OrderDto(
     string? Notes,
     decimal Total,
     int EstimatedCookMinutes,
+    bool IsGuestOrder,
+    PaymentStatus PaymentStatus,
     DateTime CreatedAt,
     DateTime? UpdatedAt,
     IReadOnlyList<OrderItemDto> Items);

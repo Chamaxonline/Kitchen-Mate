@@ -36,6 +36,9 @@ public class OrderService(IAppDbContext db)
             Notes = request.Notes,
             CreatedByUserId = userId,
             Status = OrderStatus.SentToKitchen,
+            IsGuestOrder = false,
+            PaymentStatus = PaymentStatus.Paid,
+            PaidAt = DateTime.UtcNow,
             Items = request.Items.Select(req =>
             {
                 var menu = menuItems[req.MenuItemId];
@@ -101,6 +104,9 @@ public class OrderService(IAppDbContext db)
 
         if (!OrderStatusTransitions.CanTransition(order.Status, request.Status))
             throw new BusinessRuleException($"Cannot change order status from {order.Status} to {request.Status}.");
+
+        if (order.IsGuestOrder && request.Status == OrderStatus.SentToKitchen && order.PaymentStatus != PaymentStatus.Paid)
+            throw new BusinessRuleException("Guest orders must be paid before sending to the kitchen.");
 
         order.Status = request.Status;
         order.UpdatedAt = DateTime.UtcNow;
@@ -191,6 +197,8 @@ public class OrderService(IAppDbContext db)
             o.Notes,
             o.Total,
             CookTimeRules.EstimateOrderMinutes(o.Items.Select(i => i.CookTimeMinutes)),
+            o.IsGuestOrder,
+            o.PaymentStatus,
             AsUtc(o.CreatedAt),
             o.UpdatedAt is null ? null : AsUtc(o.UpdatedAt.Value),
             o.Items.Select(i => new OrderItemDto(

@@ -78,6 +78,18 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) (or `https://localhost:3000` if using HTTPS). Copy `frontend/.env.local.example` to `frontend/.env.local` and set `NEXT_PUBLIC_API_URL` to your API URL (default HTTPS profile: `https://localhost:7067`).
 
+For guest QR card payments, also set `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` and configure `Stripe:SecretKey` in the API (`appsettings.json` or user secrets). Without Stripe keys, Development mode offers a **demo pay** button on the guest order page.
+
+### QR guest ordering
+
+1. Staff: open **Tables** → **Table QR** on any table → print or download the PNG
+2. Guest: scan QR → opens `/t/{slug}/table/{number}` (no login)
+3. Guest: add items, pay (Stripe or demo pay in dev)
+4. Staff: **Active Orders** → **Guest orders — send to kitchen** → **Send to kitchen**
+5. Kitchen and waiter flow continues as usual
+
+Guest rules: one unpaid order per table; can add items until paid; no guest accounts or cross-restaurant identity.
+
 ### SaaS — register a new restaurant
 
 1. Open [http://localhost:3000/signup](http://localhost:3000/signup)
@@ -111,14 +123,27 @@ Or use the demo tenant (`demo`) with the accounts below.
 | `GET /api/orders` | List orders (`?status=`, `?type=`, `?kitchenQueue=true`) |
 | `POST /api/orders` | Place order (Dine-In or Takeaway) |
 | `PATCH /api/orders/{id}/status` | Advance order status |
+| `GET /api/public/{slug}/tables/{n}/menu` | Guest menu (anonymous) |
+| `PUT /api/public/{slug}/tables/{n}/order` | Sync guest cart |
+| `POST /api/public/{slug}/tables/{n}/order/pay` | Start Stripe payment |
 
 ## Order flow
+
+**Staff orders** (waiter POS):
 
 ```
 Placed → SentToKitchen → InKitchen → Ready → Completed
 ```
 
-New orders are auto-sent to the kitchen on placement.
+New staff orders are auto-sent to the kitchen on placement.
+
+**Guest QR orders:**
+
+```
+Placed (unpaid) → pay → Placed (paid) → SentToKitchen → … → Completed
+```
+
+Guest orders wait at `Placed` until paid; staff sends to kitchen from Active Orders.
 
 ## CI / Deploy
 

@@ -22,6 +22,15 @@ export const TableStatusLabel: Record<TableStatus, string> = {
   2: "Reserved",
 };
 
+export type PaymentStatus = 0 | 1 | 2 | 3;
+
+export const PaymentStatusLabel: Record<PaymentStatus, string> = {
+  0: "Unpaid",
+  1: "Payment pending",
+  2: "Paid",
+  3: "Payment failed",
+};
+
 export interface MenuItem {
   id: string;
   categoryId: string;
@@ -67,6 +76,8 @@ export interface Order {
   notes: string | null;
   total: number;
   estimatedCookMinutes: number;
+  isGuestOrder: boolean;
+  paymentStatus: PaymentStatus;
   createdAt: string;
   updatedAt: string | null;
   items: OrderItem[];

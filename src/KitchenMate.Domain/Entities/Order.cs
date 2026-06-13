@@ -12,6 +12,10 @@ public class Order : BaseEntity, ITenantEntity
     public Guid? TableId { get; set; }
     public string? Notes { get; set; }
     public string? CreatedByUserId { get; set; }
+    public bool IsGuestOrder { get; set; }
+    public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Unpaid;
+    public string? StripePaymentIntentId { get; set; }
+    public DateTime? PaidAt { get; set; }
 
     public DiningTable? Table { get; set; }
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();

@@ -7,6 +7,10 @@ import { LoadingState } from "@/components/ui/LoadingState";
 
 const publicPaths = ["/login", "/signup"];
 
+function isPublicPath(pathname: string) {
+  return publicPaths.includes(pathname) || pathname.startsWith("/t/");
+}
+
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const pathname = usePathname();
@@ -14,7 +18,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (loading) return;
-    if (!user && !publicPaths.includes(pathname)) {
+    if (!user && !isPublicPath(pathname)) {
       router.replace("/login");
     }
     if (user && (pathname === "/login" || pathname === "/signup")) {
@@ -30,7 +34,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user && !publicPaths.includes(pathname)) {
+  if (!user && !isPublicPath(pathname)) {
     return null;
   }
 

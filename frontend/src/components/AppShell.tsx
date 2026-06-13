@@ -28,7 +28,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, logout, isManager } = useAuth();
 
-  if (!user) return <>{children}</>;
+  if (!user || pathname.startsWith("/t/")) return <>{children}</>;
 
   const adminLinks = isManager
     ? [

@@ -1,8 +1,8 @@
 # Kitchen Mate — Product Requirements Document (PRD)
 
-**Version:** 2.0  
+**Version:** 2.1  
 **Date:** June 13, 2026  
-**Status:** Implemented (MVP + SaaS)
+**Status:** Implemented (MVP + SaaS + QR guest ordering)
 
 ---
 
@@ -22,14 +22,13 @@ Staff take orders, route them to the kitchen, and track them until they are read
 - Support dine-in and takeaway in one system
 - **Team management** — invite staff by role within a restaurant
 - **Operational dashboard** — daily orders, revenue, kitchen pipeline, table occupancy
+- **QR table ordering** — guests scan a table QR, browse menu, pay, and place orders without staff login
 
 ### Out of Scope (current release)
 
 - Subscription billing (Stripe) and plan limits
 - Per-tenant custom domains / subdomains
-- Payments and POS card processing
 - Inventory / stock management
-- Customer-facing online ordering
 - Multi-branch / franchise (single location per tenant)
 - Reservations
 - Email invitations and password reset flows
@@ -159,14 +158,16 @@ Placed → SentToKitchen → InKitchen → Ready → Completed
 
 | Status | Meaning | Who acts |
 |--------|---------|----------|
-| **Placed** | Order created, not yet sent to kitchen | Waiter |
-| **SentToKitchen** | Order in kitchen queue | Auto on place |
+| **Placed** | Order created, not yet sent to kitchen | Waiter (staff) or guest (QR, after payment) |
+| **SentToKitchen** | Order in kitchen queue | Auto on place (staff) or waiter sends guest order |
 | **InKitchen** | Kitchen is preparing | Kitchen |
 | **Ready** | Food ready — serve or pickup | Kitchen → Waiter |
 | **Completed** | Order fulfilled and closed | Waiter |
 | **Cancelled** | Order voided | Manager / Waiter |
 
-**v1 default:** Orders auto-send to kitchen on place (`SentToKitchen`). No edits after sent except cancel.
+**Staff orders:** Auto-send to kitchen on place (`SentToKitchen`).
+
+**Guest QR orders:** Stay at `Placed` until payment succeeds; waiter/manager must **Send to kitchen** from Active Orders. No guest identification — orders are scoped to table + tenant only.
 
 #### Order items
 
@@ -192,15 +193,36 @@ Format: `ORD-{yyyyMMdd}-{sequence}` — sequence is per tenant, per UTC day.
 4. Place order → auto-sent to kitchen
 5. When kitchen marks **Ready** → waiter completes after serve/pickup
 
-### 4.7 Order history
+### 4.8 QR guest ordering (table self-service)
 
-- Completed and cancelled orders
-- Sort by most recent first
-- Filtered to current tenant
+Guests scan a QR code at their table and order from their phone — no login or guest profile.
+
+| Rule | Behavior |
+|------|----------|
+| URL | `/t/{tenantSlug}/table/{tableNumber}` |
+| Identity | None — anonymous, table-scoped only |
+| Open order | One **unpaid** guest order per table at a time |
+| Cart edits | Allowed while order is unpaid (`Placed` + `Unpaid`) |
+| Payment | Required before kitchen; Stripe PaymentIntent in production, demo pay in Development when Stripe keys are absent |
+| After payment | Order stays `Placed` + `Paid`; staff sends to kitchen |
+| New order | After payment, guest can start a fresh order on the same table |
+
+**Staff tools:**
+
+- **Tables** — generate and download per-table QR PNG
+- **Active Orders** — section for paid guest orders awaiting **Send to kitchen**
+
+**Public API** (no auth): `GET/PUT .../menu`, `GET/PUT .../order`, `POST .../order/pay`, `POST .../order/confirm-payment`, `POST .../order/demo-pay` (dev only)
 
 ---
 
 ## 5. User Stories
+
+### Guest (QR)
+
+- As a guest, I want to scan a QR at my table so I can browse the menu without downloading an app.
+- As a guest, I want to add items to my order and pay from my phone before food is prepared.
+- As a guest, I want to add more items to my unpaid order before I pay.
 
 ### Restaurant owner (Admin)
 
@@ -211,7 +233,7 @@ Format: `ORD-{yyyyMMdd}-{sequence}` — sequence is per tenant, per UTC day.
 ### Waiter
 
 - As a waiter, I want to create dine-in and takeaway orders from the menu.
-- As a waiter, I want to see which orders are ready so I can serve or hand off pickup.
+- As a waiter, I want to see paid QR orders and send them to the kitchen when ready to prepare.
 
 ### Kitchen
 
@@ -238,6 +260,7 @@ Format: `ORD-{yyyyMMdd}-{sequence}` — sequence is per tenant, per UTC day.
 | **Menu** | `GET /api/menu`; CRUD categories/items | Read: authenticated; Write: Manager or Admin |
 | **Tables** | `GET /api/tables`, `POST /api/tables`, `PATCH /api/tables/{id}/status` | Authenticated |
 | **Orders** | `GET /api/orders` (filters), `POST /api/orders`, `PATCH /api/orders/{id}/status` | Authenticated |
+| **Public guest** | `GET/PUT /api/public/{slug}/tables/{n}/menu|order`, payment endpoints | Anonymous (tenant resolved by slug) |
 
 ### Order list filters
 
@@ -256,6 +279,8 @@ Format: `ORD-{yyyyMMdd}-{sequence}` — sequence is per tenant, per UTC day.
 6. Prices on order lines are copied from menu at order time.
 7. Timestamps are stored in UTC and serialized with `Z` suffix.
 8. User creation respects role hierarchy (Manager cannot create Admin/Manager).
+9. Guest orders require `PaymentStatus = Paid` before `SentToKitchen`.
+10. Guest orders cannot be sent to kitchen until payment is confirmed.
 
 ---
 
@@ -267,11 +292,12 @@ Format: `ORD-{yyyyMMdd}-{sequence}` — sequence is per tenant, per UTC day.
 |--------|-------|-------|---------|
 | Signup | `/signup` | Public | Register new restaurant (SaaS) |
 | Login | `/login` | Public | Staff authentication |
+| Guest order | `/t/[slug]/table/[number]` | Public | QR menu, cart, payment |
 | Dashboard | `/` | All | Daily stats, kitchen pipeline, quick actions |
 | New Order | `/orders/new` | Waiter+ | Type, table, menu picker, cart |
 | Active Orders | `/orders` | Waiter+ | In-progress and ready orders |
 | Kitchen Board | `/kitchen` | Kitchen+ | Kanban by status |
-| Tables | `/tables` | All | Table list and status |
+| Tables | `/tables` | All | Table list, status, and QR codes |
 | Order History | `/orders/history` | All | Completed and cancelled |
 | Menu Admin | `/menu` | Manager, Admin | Categories and items |
 | Team | `/team` | Manager, Admin | Invite and list staff |

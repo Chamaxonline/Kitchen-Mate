@@ -1,4 +1,5 @@
 using KitchenMate.Application.Interfaces;
+using KitchenMate.Infrastructure.GuestOrders;
 using KitchenMate.Infrastructure.Identity;
 using KitchenMate.Infrastructure.Persistence;
 using KitchenMate.Infrastructure.Tenancy;
@@ -39,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ITenantService, TenantService>();
+        services.AddScoped<IGuestOrderService, GuestOrderService>();
 
         return services;
     }
