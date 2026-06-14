@@ -86,6 +86,8 @@ public class GuestOrderService(
         {
             order.Notes = request.Notes;
             order.UpdatedAt = DateTime.UtcNow;
+            if (order.Status != OrderStatus.Placed)
+                order.Status = OrderStatus.Placed;
             db.OrderItems.RemoveRange(order.Items);
         }
 
@@ -232,8 +234,9 @@ public class GuestOrderService(
             .FirstOrDefaultAsync(o =>
                 o.TableId == tableId &&
                 o.IsGuestOrder &&
-                o.PaymentStatus == PaymentStatus.Unpaid &&
-                o.Status == OrderStatus.Placed, ct);
+                (o.PaymentStatus == PaymentStatus.Unpaid || o.PaymentStatus == PaymentStatus.Pending) &&
+                o.Status != OrderStatus.Completed &&
+                o.Status != OrderStatus.Cancelled, ct);
 
     private async Task<Dictionary<Guid, MenuItem>> LoadMenuItems(
         IReadOnlyList<GuestOrderItemRequest> items,

@@ -22,7 +22,7 @@ Staff take orders, route them to the kitchen, and track them until they are read
 - Support dine-in and takeaway in one system
 - **Team management** — invite staff by role within a restaurant
 - **Operational dashboard** — daily orders, revenue, kitchen pipeline, table occupancy
-- **QR table ordering** — guests scan a table QR, browse menu, pay, and place orders without staff login
+- **QR table ordering** — guests scan a table QR, browse menu, place orders, and pay when they leave
 
 ### Out of Scope (current release)
 
@@ -158,7 +158,7 @@ Placed → SentToKitchen → InKitchen → Ready → Completed
 
 | Status | Meaning | Who acts |
 |--------|---------|----------|
-| **Placed** | Order created, not yet sent to kitchen | Waiter (staff) or guest (QR, after payment) |
+| **Placed** | Order created, not yet sent to kitchen | Waiter (staff) or guest (QR) |
 | **SentToKitchen** | Order in kitchen queue | Auto on place (staff) or waiter sends guest order |
 | **InKitchen** | Kitchen is preparing | Kitchen |
 | **Ready** | Food ready — serve or pickup | Kitchen → Waiter |
@@ -167,7 +167,7 @@ Placed → SentToKitchen → InKitchen → Ready → Completed
 
 **Staff orders:** Auto-send to kitchen on place (`SentToKitchen`).
 
-**Guest QR orders:** Stay at `Placed` until payment succeeds; waiter/manager must **Send to kitchen** from Active Orders. No guest identification — orders are scoped to table + tenant only.
+**Guest QR orders:** Stay at `Placed` until staff **Send to kitchen**. Guests can add items to their open unpaid tab anytime. Payment is optional until they leave. No guest identification — orders are scoped to table + tenant only.
 
 #### Order items
 
@@ -202,9 +202,9 @@ Guests scan a QR code at their table and order from their phone — no login or 
 | URL | `/t/{tenantSlug}/table/{tableNumber}` |
 | Identity | None — anonymous, table-scoped only |
 | Open order | One **unpaid** guest order per table at a time |
-| Cart edits | Allowed while order is unpaid (`Placed` + `Unpaid`) |
-| Payment | Required before kitchen; Stripe PaymentIntent in production, demo pay in Development when Stripe keys are absent |
-| After payment | Order stays `Placed` + `Paid`; staff sends to kitchen |
+| Cart edits | Allowed while the table tab is unpaid (any active order status) |
+| Payment | Optional at order time; pay when leaving via Stripe or demo pay in Development |
+| Kitchen | Staff sends unpaid guest orders to kitchen from Active Orders |
 | New order | After payment, guest can start a fresh order on the same table |
 
 **Staff tools:**
@@ -221,8 +221,8 @@ Guests scan a QR code at their table and order from their phone — no login or 
 ### Guest (QR)
 
 - As a guest, I want to scan a QR at my table so I can browse the menu without downloading an app.
-- As a guest, I want to add items to my order and pay from my phone before food is prepared.
-- As a guest, I want to add more items to my unpaid order before I pay.
+- As a guest, I want to place orders without paying upfront and settle the bill when I leave.
+- As a guest, I want to add more items to my open tab before I pay.
 
 ### Restaurant owner (Admin)
 
@@ -233,7 +233,7 @@ Guests scan a QR code at their table and order from their phone — no login or 
 ### Waiter
 
 - As a waiter, I want to create dine-in and takeaway orders from the menu.
-- As a waiter, I want to see paid QR orders and send them to the kitchen when ready to prepare.
+- As a waiter, I want to see QR orders and send them to the kitchen even before the guest has paid.
 
 ### Kitchen
 
@@ -279,8 +279,8 @@ Guests scan a QR code at their table and order from their phone — no login or 
 6. Prices on order lines are copied from menu at order time.
 7. Timestamps are stored in UTC and serialized with `Z` suffix.
 8. User creation respects role hierarchy (Manager cannot create Admin/Manager).
-9. Guest orders require `PaymentStatus = Paid` before `SentToKitchen`.
-10. Guest orders cannot be sent to kitchen until payment is confirmed.
+9. Guest orders can be sent to kitchen while still unpaid.
+10. Guest table tabs stay open (unpaid) until payment; guests can add items anytime before paying.
 
 ---
 
@@ -292,7 +292,7 @@ Guests scan a QR code at their table and order from their phone — no login or 
 |--------|-------|-------|---------|
 | Signup | `/signup` | Public | Register new restaurant (SaaS) |
 | Login | `/login` | Public | Staff authentication |
-| Guest order | `/t/[slug]/table/[number]` | Public | QR menu, cart, payment |
+| Guest order | `/t/[slug]/table/[number]` | Public | QR menu, cart, place order, pay on leave |
 | Dashboard | `/` | All | Daily stats, kitchen pipeline, quick actions |
 | New Order | `/orders/new` | Waiter+ | Type, table, menu picker, cart |
 | Active Orders | `/orders` | Waiter+ | In-progress and ready orders |

@@ -28,9 +28,9 @@ export default function ActiveOrdersPage() {
     ])
       .then((groups) => {
         const placed = groups.pop() ?? [];
-        const guestPaid = placed.filter((o) => o.isGuestOrder && o.paymentStatus === 2);
+        const guestPlaced = placed.filter((o) => o.isGuestOrder);
         const active = groups.flat().sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-        setGuestAwaiting(guestPaid.sort((a, b) => a.createdAt.localeCompare(b.createdAt)));
+        setGuestAwaiting(guestPlaced.sort((a, b) => a.createdAt.localeCompare(b.createdAt)));
         setOrders(active);
       })
       .catch((e: Error) => setError(e.message))

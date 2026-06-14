@@ -84,11 +84,12 @@ For guest QR card payments, also set `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` and co
 
 1. Staff: open **Tables** → **Table QR** on any table → print or download the PNG
 2. Guest: scan QR → opens `/t/{slug}/table/{number}` (no login)
-3. Guest: add items, pay (Stripe or demo pay in dev)
-4. Staff: **Active Orders** → **Guest orders — send to kitchen** → **Send to kitchen**
-5. Kitchen and waiter flow continues as usual
+3. Guest: add items → **Place order** (no payment required)
+4. Staff: **Active Orders** → **Guest orders — send to kitchen**
+5. Guest: can add more items anytime; **Pay when you leave** when ready
+6. Kitchen and waiter flow continues as usual
 
-Guest rules: one unpaid order per table; can add items until paid; no guest accounts or cross-restaurant identity.
+Guest rules: one open unpaid tab per table; add items anytime before paying; no guest accounts.
 
 ### SaaS — register a new restaurant
 
@@ -140,10 +141,11 @@ New staff orders are auto-sent to the kitchen on placement.
 **Guest QR orders:**
 
 ```
-Placed (unpaid) → pay → Placed (paid) → SentToKitchen → … → Completed
+Placed (unpaid) → SentToKitchen → InKitchen → Ready → Completed
+                      ↑ guest can add items & re-place; pay anytime before leaving
 ```
 
-Guest orders wait at `Placed` until paid; staff sends to kitchen from Active Orders.
+Guest orders do not require payment before kitchen. Staff send from Active Orders; guests pay when they leave.
 
 ## CI / Deploy
 

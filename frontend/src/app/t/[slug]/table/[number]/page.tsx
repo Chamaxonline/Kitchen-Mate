@@ -63,7 +63,7 @@ function StripePayForm({
       <PaymentElement />
       {error && <p className="text-sm text-red-600">{error}</p>}
       <Button type="submit" disabled={!stripe || loading} fullWidth size="lg">
-        {loading ? "Processing..." : "Pay now"}
+        {loading ? "Processing..." : "Pay bill"}
       </Button>
     </form>
   );
@@ -81,6 +81,7 @@ export default function GuestOrderPage() {
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [paidMessage, setPaidMessage] = useState<string | null>(null);
+  const [placedMessage, setPlacedMessage] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [demoMode, setDemoMode] = useState(true);
   const [showPay, setShowPay] = useState(false);
@@ -121,6 +122,7 @@ export default function GuestOrderPage() {
     cookTimeMinutes: number;
   }) {
     setPaidMessage(null);
+    setPlacedMessage(null);
     setCart((prev) => {
       const existing = prev.find((line) => line.menuItemId === item.id);
       if (existing) {
@@ -143,6 +145,7 @@ export default function GuestOrderPage() {
 
   function updateQty(menuItemId: string, delta: number) {
     setPaidMessage(null);
+    setPlacedMessage(null);
     setCart((prev) =>
       prev
         .map((line) =>
@@ -176,7 +179,13 @@ export default function GuestOrderPage() {
     }
   }
 
-  async function handlePayClick() {
+  async function handlePlaceOrder() {
+    const saved = await saveOrder();
+    if (!saved) return;
+    setPlacedMessage("Order placed! Add more items anytime. Pay when you're ready to leave.");
+  }
+
+  async function handlePayBillClick() {
     const saved = await saveOrder();
     if (!saved) return;
 
@@ -202,7 +211,7 @@ export default function GuestOrderPage() {
       setNotes("");
       setShowPay(false);
       setClientSecret(null);
-      setPaidMessage("Payment received! Your order will be sent to the kitchen shortly. You can scan again to order more.");
+      setPaidMessage("Payment received. Thank you! You can order again anytime.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Payment failed.");
     }
@@ -213,7 +222,7 @@ export default function GuestOrderPage() {
     setNotes("");
     setShowPay(false);
     setClientSecret(null);
-    setPaidMessage("Payment received! Your order will be sent to the kitchen shortly. You can scan again to order more.");
+    setPaidMessage("Payment received. Thank you! You can order again anytime.");
   }
 
   if (loading) return <LoadingState label="Loading menu..." />;
@@ -227,7 +236,7 @@ export default function GuestOrderPage() {
           </div>
           <div>
             <p className="font-bold text-stone-900">{menu?.restaurantName}</p>
-            <p className="text-sm text-muted">Table {tableNumber} · Order from your phone</p>
+            <p className="text-sm text-muted">Table {tableNumber} · Order now, pay when you leave</p>
           </div>
         </div>
       </header>
@@ -239,6 +248,11 @@ export default function GuestOrderPage() {
         {paidMessage && (
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
             {paidMessage}
+          </div>
+        )}
+        {placedMessage && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            {placedMessage}
           </div>
         )}
 
@@ -302,9 +316,14 @@ export default function GuestOrderPage() {
             </div>
 
             {!showPay ? (
-              <Button className="mt-4" fullWidth size="lg" onClick={handlePayClick} disabled={syncing}>
-                {syncing ? "Saving..." : "Pay & place order"}
-              </Button>
+              <div className="mt-4 space-y-2">
+                <Button fullWidth size="lg" onClick={handlePlaceOrder} disabled={syncing}>
+                  {syncing ? "Saving..." : "Place order"}
+                </Button>
+                <Button variant="ghost" fullWidth onClick={handlePayBillClick} disabled={syncing}>
+                  Pay when you leave
+                </Button>
+              </div>
             ) : demoMode ? (
               <Button className="mt-4" fullWidth size="lg" onClick={handleDemoPay}>
                 Complete demo payment

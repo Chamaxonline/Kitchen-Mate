@@ -105,9 +105,6 @@ public class OrderService(IAppDbContext db)
         if (!OrderStatusTransitions.CanTransition(order.Status, request.Status))
             throw new BusinessRuleException($"Cannot change order status from {order.Status} to {request.Status}.");
 
-        if (order.IsGuestOrder && request.Status == OrderStatus.SentToKitchen && order.PaymentStatus != PaymentStatus.Paid)
-            throw new BusinessRuleException("Guest orders must be paid before sending to the kitchen.");
-
         order.Status = request.Status;
         order.UpdatedAt = DateTime.UtcNow;
 
